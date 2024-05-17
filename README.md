@@ -20,3 +20,7 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 - [Livrer son travail](docs/workflow.md)
 
 ![Humorous Git GIF](its-Wrabbit-Time.gif)
+
+## Comme ça on aime les Gif ??
+
+![Un conflit ! de canard ! HAHA](https://media1.tenor.com/m/_unefcDI8B8AAAAC/pattes-de-canard-funny.gif "DES PATTES DE CANAAAAAAAAAAAAAAAAAAARD")
