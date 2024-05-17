@@ -9,13 +9,14 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 ## Sommaire des exercices
 
-  - [D70 - Git / Github / Systèmes de versionning](D70_Git/README.md)
-  - [D42 - Consolidation des connaissances en informatique](D42_Consolidation_info/README.md)
-  - [D46 - Php / Design Patterns](D46_Php_Design_Patterns/README.md)
-  - [D11 - Php / Symfony](D11_Php_Symfony/README.md)
-  - [AD9 - Consolidation des compétences système : Linux pour le web](AD9_Linux_web/README.md)
+- [D70 - Git / Github / Systèmes de versionning](D70_Git/README.md)
+- [D42 - Consolidation des connaissances en informatique](D42_Consolidation_info/README.md)
+- [D46 - Php / Design Patterns](D46_Php_Design_Patterns/README.md)
+- [D11 - Php / Symfony](D11_Php_Symfony/README.md)
+- [AD9 - Consolidation des compétences système : Linux pour le web](AD9_Linux_web/README.md)
 
 ## Documentation
 
-  - [Livrer son travail](docs/workflow.md)
+- [Livrer son travail](docs/workflow.md)
 
+![Humorous Git GIF](its-Wrabbit-Time.gif)
