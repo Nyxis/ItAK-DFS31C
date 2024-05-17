@@ -21,6 +21,10 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 ![Humorous Git GIF](its-Wrabbit-Time.gif)
 
-## Comme ça on aime les Gif ??
+
+## Comme ça on aime les Gif ?? oui
 
 ![Un conflit ! de canard ! HAHA](https://media1.tenor.com/m/_unefcDI8B8AAAAC/pattes-de-canard-funny.gif "DES PATTES DE CANAAAAAAAAAAAAAAAAAAARD")
+
+![Humorous Git GIF](its-Wrabbit-Time.gif)
+
