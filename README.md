@@ -1,5 +1,5 @@
 # ItAK-DFS31C
-![Humorous Git GIF](https://f.hellowork.com/blogdumoderateur/2013/02/nyan-cat-gif-1.gif)
+![Funny duck GIF](https://j.gifs.com/jQgrOg.gif)
 
 Dépôt support aux rendus d'exercice pour la session DFS31C de l'IT-Akademy
 
