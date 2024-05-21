@@ -1,4 +1,5 @@
 # ItAK-DFS31C
+![](https://media.tenor.com/bLRz1SfD1UMAAAAi/doge.gif)
 https://media.tenor.com/bLRz1SfD1UMAAAAi/doge.gif
 Dépôt support aux rendus d'exercice pour la session DFS31C de l'IT-Akademy
 
