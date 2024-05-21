@@ -1,4 +1,9 @@
+![Git Merge Gif](https://tenor.com/view/git-merge-gitmerge-gif-18010083)
+
+
+
 # ItAK-DFS31C
+
 
 Dépôt support aux rendus d'exercice pour la session DFS31C de l'IT-Akademy
 
