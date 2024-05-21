@@ -1,4 +1,4 @@
-![Git Merge Gif](https://tenor.com/view/git-merge-gitmerge-gif-18010083)
+![Git Merge Gif](git-merge.gif)
 
 
 
