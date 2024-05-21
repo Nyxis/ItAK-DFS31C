@@ -17,4 +17,3 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 ![GIF - Humorisitque](https://giphy.com/gifs/git-merge-cFkiFMDg3iFoI)
 
-
