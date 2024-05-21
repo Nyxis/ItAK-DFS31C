@@ -15,5 +15,5 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 ![Un conflit ! de canard ! HAHA](https://media1.tenor.com/m/_unefcDI8B8AAAAC/pattes-de-canard-funny.gif "DES PATTES DE CANAAAAAAAAAAAAAAAAAAARD") 
 https://media.giphy.com/media/b9QBHfcNpvqDK/giphy.gif?cid=ecf05e47by0acpjk9rw3x8yzwepagq3tn1ceoa6jwltulgte&ep=v1_gifs_search&rid=giphy.gif&ct=g ![Canard GIF](https://i.giphy.com/b9QBHfcNpvqDK.webp) ![GIF 
-CANARD](https://c.tenor.com/IOBB6fBMEX0AAAAd/tenor.gif) >>>>>>> e6beaa9 (modification point d'exclamation)
 ![GIF CANARD](https://i.giphy.com/b9QBHfcNpvqDK.webp)
+![GIF DE CANARD](https://i.giphy.com/b9QBHfcNpvqDK.webp)
