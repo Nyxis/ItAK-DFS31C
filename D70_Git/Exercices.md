@@ -107,3 +107,9 @@ Déployez le précommit ```add_this_precommit``` dans le dossier ```<adresse_ssh
 Référencez maintenant le chemin du dossier contenant les hooks dans la configuration git de votre espace de travail, sous la clé "core.hooksPath".
 
 Ouvrez le fichier ```test_hook.php``` et ajoutez un retour à la ligne en fin de fichier. Créez un commit avec cette modification. Si le hook est bien installé, le commit sera refusé.
+
+
+
+<img 
+src='https://devhumor.com/content/uploads/images/October2019/git-push-origin-master-force.jpg'>
+
