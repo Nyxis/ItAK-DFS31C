@@ -1,0 +1,39 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Dependency directories
+node_modules/
+vendor/
+
+# IDE files
+.idea/
+.vscode/
+
+# OS generated files
+._*
+.Spotlight-V100
+.Trashes
+
+# Compiled source files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Generated files
+*.pyc
+*.pyo
+*.pyd
+*.ipynb_checkpoints
+
+# Temporary files
+*.swp
+*.tmp
+.temp/
+
