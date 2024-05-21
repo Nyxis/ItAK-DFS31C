@@ -2,7 +2,7 @@
 
 Dépôt support aux rendus d'exercice pour la session DFS31C de l'IT-Akademy
 
-![I made it !](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdDNiazR3OG5qMXF0NjhjcTVzNjR0MTFhNGFydHc0MWtvdDBjY3d6dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xiAqCzbB3eZvG/giphy.gif)
+![Canard marrant](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYXZ5amtqN290c3djdXNnaXZnOXQyNnpzOWtjZnF4NDJwMnJncTdhbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/S1SnLg08CxnUGqyqha/giphy.gif)
 
 Dans ce dépôt, vous trouverez les ressources utiles évoquées en cours ainsi que les consignes des différents exercices.
 
