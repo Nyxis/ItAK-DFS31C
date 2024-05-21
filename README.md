@@ -13,3 +13,6 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 
 ![Hell Nah](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnQ0Znhocng4bHBoODN4YzZyZXlwM2ZrNHo4MXA5dzQzemQzYWVrbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VbnUQpnihPSIgIXuZv/giphy.gif)
+
+    - should have a gif but it won't appear -.-'
+
