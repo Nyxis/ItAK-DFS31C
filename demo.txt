@@ -1,0 +1,15 @@
+total 48
+drwxr-xr-x  13 nyx  staff  416 22 mai 09:55 .
+drwxr-xr-x   6 nyx  staff  192 22 mai 09:54 ..
+-rw-r--r--   1 nyx  staff  343 22 mai 09:51 COMMIT_EDITMSG
+-rw-r--r--   1 nyx  staff   88 22 mai 09:52 FETCH_HEAD
+-rw-r--r--   1 nyx  staff   21 22 mai 09:53 HEAD
+-rw-r--r--   1 nyx  staff  244 22 mai 09:49 config
+-rw-r--r--   1 nyx  staff   73 22 mai 09:46 description
+drwxr-xr-x  16 nyx  staff  512 22 mai 09:46 hooks
+-rw-r--r--   1 nyx  staff  257 22 mai 09:54 index
+drwxr-xr-x   3 nyx  staff   96 22 mai 09:46 info
+drwxr-xr-x   4 nyx  staff  128 22 mai 09:52 logs
+drwxr-xr-x  26 nyx  staff  832 22 mai 09:52 objects
+drwxr-xr-x   5 nyx  staff  160 22 mai 09:52 refs
+coucou
