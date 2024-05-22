@@ -1,12 +1,23 @@
-# Makefile to automate the creation and display of myname.txt
+# Makefile pour automatiser la création et l'affichage de myname.txt
 
-# Target to create the file with name and surname
+include .env
+
+# Cible pour créer le fichier avec le nom et le prénom
 create:
-	echo "Bouddehbine Jaouad" > myname.txt
+	echo "${USER_NAME}" > myname.txt
 
-# Target to display the content of the file
+# Cible pour afficher le contenu du fichier
 display:
 	cat myname.txt
 
-# Default target to run both the above targets
-all: create display
+# Cible pour écrire dans le fichier .git/config
+gitconfig:
+	echo "[user]" > .git/config
+	echo "  name = ${USER_NAME}" >> .git/config
+	echo "  email = ${USER_EMAIL}" >> .git/config
+	echo "[core]" >> .git/config
+	echo "  sshCommand = \"ssh -i ~/.ssh/it_akademy_rsa\"" >> .git/config
+
+# Cible par défaut pour exécuter les cibles ci-dessus
+all: create display gitconfig
+
