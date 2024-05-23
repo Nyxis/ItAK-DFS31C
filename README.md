@@ -16,3 +16,5 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
     - should have a gif but it won't appear -.-'
 
+  - [D70 - Git / Github / Systèmes de versionning](D70_Git/README.md)
+  - [D42 - Consolidation des connaissances en informatique](D42_Consolidation_info/README.md)
