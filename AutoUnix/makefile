@@ -1,72 +1,62 @@
-.PHONY: setup ssh-setup git-config install-software
+.PHONY: install create-dirs generate-ssh-key configure-git install-software install-brew install-git install-fish install-fisher install-vscode
 
-# Include environment variables
 include .env
 
-setup:
-    @echo "Creating base directory structure..."
-    mkdir -p ~/workspace/IT-Akademy/ItAK-DFS31C
-    @echo "Directory structure created."
+WORKSPACE_PATH := $(shell cd ~/workspace/IT-Akademy && pwd)
 
-# Cible pour créer le fichier avec le nom et le prénom
-create:
-    @echo "${USER_NAME}" > myname.txt
+install: create-dirs generate-ssh-key configure-git install-software
 
-# Cible pour afficher le contenu du fichier
-display:
-    @cat myname.txt
+create-dirs:
+	@echo "Creating .ssh and .git directories..."
+	mkdir -p $(WORKSPACE_PATH)/.ssh
+	mkdir -p $(WORKSPACE_PATH)/.git
+	@echo ".ssh and .git directories created."
 
-ssh-setup:
-    @echo "Generating SSH key..."
-    ssh-keygen -t rsa -b 4096 -C "$(GIT_USER_EMAIL)" -f ~/.ssh/id_rsa -N ""
-    @echo "SSH key generated."
+generate-ssh-key:
+	@echo "Generating SSH key..."
+	ssh-keygen -q -f $(WORKSPACE_PATH)/.ssh/it_akademy_rsa -N ""
+	@echo "SSH key generated."
+	@echo "Copy the following SSH key and add it to your GitHub account ($(USER_NAME)):"
+	@cat $(WORKSPACE_PATH)/.ssh/it_akademy_rsa.pub
+	@echo "Instructions: https://github.com/settings/keys"
 
-    @echo "Adding SSH key to the ssh-agent..."
-    eval "$(ssh-agent -s)"
-    ssh-add ~/.ssh/id_rsa
-    @echo "SSH key added to ssh-agent."
+configure-git: configure-git-local configure-git-global
 
-    @echo "Copy the following SSH key and add it to your GitHub account ($(GIT_USER_NAME)):"
-    @cat ~/.ssh/id_rsa.pub
-    @echo "Instructions: https://github.com/settings/keys"
+configure-git-local:
+	@echo "Configuring local Git..."
+	echo "[user]\n\tname = $(USER_NAME)\n\temail = $(USER_EMAIL)\n[core]\n\tsshCommand = \"ssh -i $(WORKSPACE_PATH)/.ssh/it_akademy_rsa\"" > $(WORKSPACE_PATH)/.git/config
+	@echo "Local Git configured."
 
-git-config:
-    @echo "Configuring Git..."
-    git config --global user.name "$(GIT_USER_NAME)"
-    git config --global user.email "$(GIT_USER_EMAIL)"
-    git config --global core.editor "code --wait"
-    git config --global diff.tool "vscode"
-    git config --global difftool.vscode.cmd "code --wait --diff $$LOCAL $$REMOTE"
-    git config --global core.autocrlf input
-    @echo "Git configured."
+configure-git-global:
+	@echo "Configuring global Git to include workspace-specific config..."
+	grep -qxF '[includeif "gitdir:$(WORKSPACE_PATH)"]' ~/.gitconfig || echo '[includeif "gitdir:$(WORKSPACE_PATH)/"]\n\tpath = $(WORKSPACE_PATH)/.git/config' >> ~/.gitconfig
+	@echo "Global Git configured to include workspace-specific config."
 
 install-software: install-brew install-git install-fish install-fisher install-vscode
 
 install-brew:
-    @echo "Checking for Homebrew..."
-    which brew || /bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    @echo "Homebrew installed."
+	@echo "Checking for Homebrew..."
+	which brew || /bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	@echo "Homebrew installed."
 
 install-git:
-    @echo "Checking for Git..."
-    which git || brew install git
-    @echo "Git installed."
+	@echo "Checking for Git..."
+	which git || brew install git
+	@echo "Git installed."
 
 install-fish:
-    @echo "Installing Fish Shell..."
-    brew install fish
-    @echo "Fish Shell installed."
+	@echo "Installing Fish Shell..."
+	brew install fish
+	@echo "Fish Shell installed."
 
 install-fisher:
-    @echo "Installing Fisher..."
-    curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
-    fisher install jorgebucaran/hydro
-    fisher install oh-my-fish/plugin-bang-bang
-    @echo "Fisher and plugins installed."
+	@echo "Installing Fisher..."
+	curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
+	fisher install jorgebucaran/hydro
+	fisher install oh-my-fish/plugin-bang-bang
+	@echo "Fisher and plugins installed."
 
 install-vscode:
-    @echo "Installing Visual Studio Code..."
-    brew install --cask visual-studio-code
-    @echo "Visual Studio Code installed."
-
-    
+	@echo "Installing Visual Studio Code..."
+	brew install --cask visual-studio-code
+	@echo "Visual Studio Code installed."
