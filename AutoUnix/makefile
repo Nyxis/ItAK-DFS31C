@@ -1,15 +1,10 @@
-.PHONY: install create-dirs generate-ssh-key configure-git install-software install-brew install-git install-fish install-fisher install-vscode
+.PHONY: install create-workspace create-dirs generate-ssh-key configure-git install-software install-brew install-git install-fish install-fisher install-vscode
 
 include .env
 
-WORKSPACE_PATH := $(shell cd ~/workspace/IT-Akademy && pwd)
+WORKSPACE_PATH := $(shell mkdir -p ~/workspace/IT-Akademy && cd ~/workspace/IT-Akademy && pwd)
 
-install: create-workspace create-dirs generate-ssh-key configure-git install-software
-
-create-workspace:
-	@echo "Creating workspace directory..."
-	mkdir -p ~/workspace/IT-Akademy
-	@echo "Workspace directory created."
+install: create-dirs generate-ssh-key configure-git install-software
 
 create-dirs:
 	@echo "Creating .ssh and .git directories..."
@@ -44,6 +39,7 @@ install-brew:
 	@echo "Checking for Homebrew..."
 	which brew || /bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 	@echo "Homebrew installed."
+	eval "$(/opt/homebrew/bin/brew shellenv)"
 
 install-git:
 	@echo "Checking for Git..."
