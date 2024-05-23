@@ -10,4 +10,4 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 ## Sommaire des exercices
 
 - [D70 - Git / Github / Systèmes de versionning](D70_Git/Exercices.md)
-  ![Funny Duck GIF](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnBiNmxsMzc0YWM1MWEyNGhtMzFreHlzMHVqbjkzb3pqbGFwcmYwZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Xv09lByZqcnNC/giphy.gif)
+  ![gif kepa](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXg3OXF4ZGgzZDJwNDBneTlma3B2b3h5dmY3eGw5cXAwejByMWE3MSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Kxc7WOGqAnXoU0vsAK/giphy.gif)
