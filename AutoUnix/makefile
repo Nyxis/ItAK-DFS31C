@@ -1,4 +1,3 @@
-
 .PHONY: setup ssh-setup git-config install-software
 
 # Include environment variables
@@ -11,11 +10,11 @@ setup:
 
 # Cible pour créer le fichier avec le nom et le prénom
 create:
-	@echo "${USER_NAME}" > myname.txt
+    @echo "${USER_NAME}" > myname.txt
 
 # Cible pour afficher le contenu du fichier
 display:
-	@cat myname.txt
+    @cat myname.txt
 
 ssh-setup:
     @echo "Generating SSH key..."
