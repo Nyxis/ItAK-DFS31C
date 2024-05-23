@@ -50,8 +50,9 @@ shell_config:
 	@if [ ! -x "$(command -v fisher)" ]; then \
 		curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher; \
 	fi
-	@fish -c "fisher install <plugin_name_1>"
-	@fish -c "fisher install <plugin_name_2>"
+	@fish -c "fisher install jorgebucaran/fisher"
+	@fish -c "fisher install jorgebucaran/hydro"
+	@fish -c "fisher install oh-my-fish/plugin-bang-bang"
 
 # Cible pour installer les extensions de VSCode
 vscode_extensions:
