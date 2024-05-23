@@ -6,11 +6,13 @@ monprenom:
 	echo "$(USER_NAME)" > monprenom.txt
 	cat monprenom.txt
 .git: monprenom
-		mkdir -p .git
+		@git -v || brew install git
+		mkdir -p .git	
 
 .gitconfig: .git
-	@echo -e "[user]\n\tname = $(USER_NAME) \n\temail = $(USER_EMAIL)" >> .git/config
-	@echo -e "[core]\n\tsshCommand = \"ssh -i" $(shell pwd)/.ssh/it_akademy_rsa\" >> .git/config
+	@echo "[user]\n\tname = $(USER_NAME) \n\temail = $(USER_EMAIL)" >> .git/config
+	@echo "[core]\n\tsshCommand = \"ssh -i" $(shell pwd)/.ssh/it_akademy_rsa\" >> .git/config
+	@(git config --list | grep $(workspace_path)/.git/config) || (echo "[includeif \"gitdir:$(workspace_path)/\"]\n\tpath=$(shell pwd)/.git/config" >> $(HOME)/.gitconfig)
 	cat .git/config
 
 .ssh: .gitconfig
