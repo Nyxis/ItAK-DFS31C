@@ -4,7 +4,12 @@ include .env
 
 WORKSPACE_PATH := $(shell cd ~/workspace/IT-Akademy && pwd)
 
-install: create-dirs generate-ssh-key configure-git install-software
+install: create-workspace create-dirs generate-ssh-key configure-git install-software
+
+create-workspace:
+	@echo "Creating workspace directory..."
+	mkdir -p ~/workspace/IT-Akademy
+	@echo "Workspace directory created."
 
 create-dirs:
 	@echo "Creating .ssh and .git directories..."
@@ -29,7 +34,8 @@ configure-git-local:
 
 configure-git-global:
 	@echo "Configuring global Git to include workspace-specific config..."
-	grep -qxF '[includeif "gitdir:$(WORKSPACE_PATH)"]' ~/.gitconfig || echo '[includeif "gitdir:$(WORKSPACE_PATH)/"]\n\tpath = $(WORKSPACE_PATH)/.git/config' >> ~/.gitconfig
+	touch ~/.gitconfig
+	grep -qxF '[includeif "gitdir:$(WORKSPACE_PATH)/"]' ~/.gitconfig || echo '[includeif "gitdir:$(WORKSPACE_PATH)/"]\n\tpath = $(WORKSPACE_PATH)/.git/config' >> ~/.gitconfig
 	@echo "Global Git configured to include workspace-specific config."
 
 install-software: install-brew install-git install-fish install-fisher install-vscode
