@@ -1,0 +1,4 @@
+.env
+.ssh
+.log
+docker-compose.yaml
