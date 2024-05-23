@@ -1,3 +1,4 @@
+
 .PHONY: setup ssh-setup git-config install-software
 
 setup:
@@ -26,5 +27,38 @@ git-config:
     git config --global user.name "$(GIT_USER_NAME)"
     git config --global user.email "$(GIT_USER_EMAIL)"
     git config --global core.editor "code --wait"
+    git config --global diff.tool "vscode"
+    git config --global difftool.vscode.cmd "code --wait --diff $$LOCAL $$REMOTE"
+    git config --global core.autocrlf input
     @echo "Git configured."
+
+install-software: install-brew install-git install-fish install-fisher install-vscode
+
+install-brew:
+    @echo "Checking for Homebrew..."
+    which brew || /bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    @echo "Homebrew installed."
+
+install-git:
+    @echo "Checking for Git..."
+    which git || brew install git
+    @echo "Git installed."
+
+install-fish:
+    @echo "Installing Fish Shell..."
+    brew install fish
+    @echo "Fish Shell installed."
+
+install-fisher:
+    @echo "Installing Fisher..."
+    curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
+    fisher install jorgebucaran/hydro
+    fisher install oh-my-fish/plugin-bang-bang
+    @echo "Fisher and plugins installed."
+
+install-vscode:
+    @echo "Installing Visual Studio Code..."
+    brew install --cask visual-studio-code
+    @echo "Visual Studio Code installed."
+
     
