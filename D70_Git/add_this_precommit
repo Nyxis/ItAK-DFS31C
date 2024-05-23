@@ -32,7 +32,7 @@ fi
 yaml_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ya?ml$')
 if [[ "$yaml_files" ]]; then
   for file in $yaml_files; do
-    yaml-lint "$file" > /dev/null 2>&1
+    yamllint "$file" > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
       fail_commit "Erreur de syntaxe YAML dans le fichier: $file"
     fi
