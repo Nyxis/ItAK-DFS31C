@@ -1,33 +1,24 @@
-# Makefile for initializing the work environment
+include .env
 
-WORKSPACE=$(shell pwd)
-SSH_DIR=$(WORKSPACE)/.ssh
-GIT_DIR=$(WORKSPACE)/.git
-PRIVATE_KEY=$(SSH_DIR)/id_rsa
-ENV_FILE=$(WORKSPACE)/.env
+SSH_KEY_PATH=$(shell pwd)/.ssh/it_akademy_rsa
 
-.PHONY: all init_ssh init_git generate_ssh_key configure_git
+.PHONY: install
 
-all: init_ssh init_git generate_ssh_key configure_git
+install: .ssh/it_akademy_rsa .git/config config-global
+	@echo "Canardisation effectué !"
 
-# Create the .ssh and .git directories if they don't exist
-init_ssh:
-	mkdir -p $(SSH_DIR)
+.ssh:
+	mkdir .ssh
 
-init_git:
-	mkdir -p $(GIT_DIR)
+.ssh/it_akademy_rsa: .ssh
+	ssh-keygen -q -f $(SSH_KEY_PATH) -N ""
 
-# Generate SSH keys
-generate_ssh_key: init_ssh
-	ssh-keygen -t rsa -b 4096 -f $(PRIVATE_KEY) -N ""
+.git:
+	mkdir .git
 
-# Configure the git config file
-configure_git: init_git
-	@set -a; \
-	. $(ENV_FILE); \
-	ABS_PRIVATE_KEY=$$(cd $(SSH_DIR) && pwd)/id_rsa; \
-	echo "[user]" > $(GIT_DIR)/config; \
-	echo "    name = $$USER_NAME" >> $(GIT_DIR)/config; \
-	echo "    email = $$USER_EMAIL" >> $(GIT_DIR)/config; \
-	echo "[core]" >> $(GIT_DIR)/config; \
-	echo "    sshCommand = \"ssh -i $${ABS_PRIVATE_KEY}\"" >> $(GIT_DIR)/config
+.git/config: .git
+	echo "[user]\n\tname = $(USER_NAME)\n\temail = $(USER_EMAIL)\n[core]\n\tsshCommand = \"ssh -i $(SSH_KEY_PATH)\"" > .git/config
+
+
+config-global:
+	@grep -qxF '[includeif "gitdir:$(shell pwd)"]' ~/.gitconfig || echo '[includeif "gitdir:$(shell pwd)"]\n\tpath=$(shell pwd)/.git/config' >> ~/.gitconfig
