@@ -1,5 +1,12 @@
+version: '3.9'
+
 services:
   web:
     image: nginx:latest
+    depends_on:
+      - php
     ports:
       - "80:80"
+
+  php:
+    image: php:fpm
