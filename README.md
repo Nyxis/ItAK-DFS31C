@@ -10,4 +10,11 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 ## Sommaire des exercices
 
   - [D70 - Git / Github / Systèmes de versionning](D70_Git/Exercices.md)
+
+
+## Comme ça on aime les Gif ?? oui
+
+![Un conflit ! de canard ! HAHA](https://media1.tenor.com/m/_unefcDI8B8AAAAC/pattes-de-canard-funny.gif "DES PATTES DE CANAAAAAAAAAAAAAAAAAAARD")
+
 ![Humorous Git GIF](its-Wrabbit-Time.gif)
+
