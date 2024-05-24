@@ -13,7 +13,7 @@ NAME = $(USER_NAME)
 EMAIL = $(USER_EMAIL)
 
 # Chemins des fichiers de clés SSH
-SSH_KEY_DIR := /Users/macrepie/Workspace/IT-Akademy/.ssh
+SSH_KEY_DIR := ~/.ssh
 SSH_KEY := $(SSH_KEY_DIR)/it-akademy
 SSH_KEY_PUB := $(SSH_KEY).pub
 
