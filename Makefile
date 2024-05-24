@@ -11,7 +11,7 @@ SSH_DIR := $(WORKSPACE_DIR)/.ssh
 GIT_DIR := $(WORKSPACE_DIR)/.git
 
 # Chemin absolu de la clé SSH dans le dossier .ssh
-SSH_KEY := $(SSH_DIR)/it_akademy_rsa
+SSH_KEY := $(SSH_DIR)/it-akademy
 
 # Chemin absolu du fichier .git/config
 GIT_CONFIG_FILE := $(GIT_DIR)/config
