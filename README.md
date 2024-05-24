@@ -9,5 +9,5 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 ## Sommaire des exercices
 
-![GIF CANARD](https://i.gifer.com/1IQs.gif)
+![GIF CANARD](https://i.imgur.com/DSITgpo.gif)
 
