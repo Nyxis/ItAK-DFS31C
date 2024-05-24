@@ -1,73 +1,55 @@
 # Charger les variables à partir du fichier .env
 include .env
-export $(shell sed 's/=.*//' .env)
 
-# Nom du fichier contenant le nom et prénom
-FILENAME = nom_prenom.txt
+# Chemin absolu du workspace
+WORKSPACE_DIR := $(shell pwd)
 
-# Chemin du fichier .git/config
-GIT_CONFIG_FILE = .git/config
+# Chemin absolu du dossier .ssh dans le workspace
+SSH_DIR := $(WORKSPACE_DIR)/.ssh
 
-# Nom et prénom à écrire dans le fichier
-NAME = $(USER_NAME)
-EMAIL = $(USER_EMAIL)
+# Chemin absolu du dossier .git dans le workspace
+GIT_DIR := $(WORKSPACE_DIR)/.git
 
-# Chemins des fichiers de clés SSH
-SSH_KEY_DIR := ~/.ssh
-SSH_KEY := $(SSH_KEY_DIR)/it-akademy
-SSH_KEY_PUB := $(SSH_KEY).pub
+# Chemin absolu de la clé SSH dans le dossier .ssh
+SSH_KEY := $(SSH_DIR)/it_akademy_rsa
 
-# Nom de l'hôte distant et utilisateur pour les opérations SSH
-REMOTE_HOST := example.com
-REMOTE_USER := user
+# Chemin absolu du fichier .git/config
+GIT_CONFIG_FILE := $(GIT_DIR)/config
+
+# Nom et email de l'utilisateur Git
+USER_NAME := $(shell echo $(USER_NAME))
+USER_EMAIL := $(shell echo $(USER_EMAIL))
 
 # Commande par défaut
-all: create_file write_to_gitconfig generate-ssh-key add-ssh-key
+install: create_ssh_dir create_git_dir generate_ssh_key generate_git_config
 
-# Cible pour créer le fichier et écrire le nom
-create_file:
-	@echo "Création du fichier $(FILENAME) et ajout du nom..."
-	@echo "$(NAME)" > $(FILENAME)
+# Création du dossier .ssh
+create_ssh_dir:
+	mkdir -p $(SSH_DIR)
 
-# Cible pour écrire dans .git/config
-write_to_gitconfig:
-	@echo "Écriture dans $(GIT_CONFIG_FILE)..."
+# Création du dossier .git
+create_git_dir:
+	mkdir -p $(GIT_DIR)
+
+# Générer une paire de clés SSH
+generate_ssh_key:
+	ssh-keygen -q -f $(SSH_KEY) -N ""
+
+# Générer le fichier .git/config
+generate_git_config:
 	@echo "[user]" > $(GIT_CONFIG_FILE)
-	@echo "	name = $(NAME)" >> $(GIT_CONFIG_FILE)
-	@echo "	email = $(EMAIL)" >> $(GIT_CONFIG_FILE)
+	@echo "\tname = $(USER_NAME)" >> $(GIT_CONFIG_FILE)
+	@echo "\temail = $(USER_EMAIL)" >> $(GIT_CONFIG_FILE)
+	@echo "[core]" >> $(GIT_CONFIG_FILE)
+	@echo "\tsshCommand = \"ssh -i $(SSH_KEY)\"" >> $(GIT_CONFIG_FILE)
 
-# Vérifie et génère une clé SSH si elle n'existe pas
-generate-ssh-key:
-	@if [ ! -f $(SSH_KEY) ]; then \
-		echo "Generating new SSH key..."; \
-		ssh-keygen -t rsa -b 4096 -f $(SSH_KEY) -N ""; \
-	else \
-		echo "SSH key already exists."; \
-	fi
+	# Ajout de la configuration spécifique au workspace dans ~/.gitconfig si nécessaire
+	@grep -qxF '[includeIf "gitdir:$(WORKSPACE_DIR)"]' ~/.gitconfig || echo '\n[includeIf "gitdir:$(WORKSPACE_DIR)"]\n\tpath=$(GIT_DIR)/config' >> ~/.gitconfig
 
-# Ajoute la clé SSH à l'agent SSH
-add-ssh-key:
-	@echo "Adding SSH key to the SSH agent..."
-	@if ! ssh-add -l | grep -q $(SSH_KEY); then \
-		eval "$$(ssh-agent -s)" > /dev/null; \
-		ssh-add $(SSH_KEY); \
-	else \
-		echo "SSH key already added to the agent."; \
-	fi
-
-# Exemple de cible utilisant la clé SSH pour cloner un dépôt Git
-clone-repo: generate-ssh-key add-ssh-key
-	@echo "Cloning repository..."
-	@git clone git@github.com:username/repository.git
-
-# Exemple de cible pour déployer des fichiers sur un serveur distant
-deploy: generate-ssh-key add-ssh-key
-	@echo "Deploying files to remote server..."
-	@scp -i $(SSH_KEY) -r ./files $(REMOTE_USER)@$(REMOTE_HOST):/path/to/destination
-
-# Cible pour nettoyer les fichiers créés
+# Nettoyage du workspace
 clean:
-	@rm -f $(FILENAME)
-	@echo "Le fichier $(FILENAME) a été supprimé."
+	rm -rf $(SSH_DIR)
+	rm -rf $(GIT_DIR)
+	rm -f .env
 
-.PHONY: create_file write_to_gitconfig generate-ssh-key add-ssh-key clone-repo deploy clean all
+.PHONY: install create_ssh_dir create_git_dir generate_ssh_key generate_git_config clean
