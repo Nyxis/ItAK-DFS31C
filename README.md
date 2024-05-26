@@ -9,8 +9,18 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 ## Sommaire des exercices
 
+  - [D70 - Git / Github / Systèmes de versionning](D70_Git/README.md)
 
-  - [D70 - Git / Github / Systèmes de versionning](D70_Git/Exercices.md)
+  - Apprentissage des commandes usuelles ✅ [Sandbox - capture d'écran](exercices_sandbox_git.zip)
+  - Setup pro d'un compte Git - espace de travail - clés SSH - fork - PR - rebase_me ✅
+  - Ne pas laisser traîner ses artefacts ✅ [gitignore](.gitignore)
+  - Pre-commits ✅ 
+
+  - [D42 - Consolidation des connaissances en informatique](D42_Consolidation_info/README.md)
+
+  - Utilisation de Makefile ✅ [My custom Makefile](AutoUnix/makefile)
+  - Docker-compose ✅ [service configurations](docker/docker-compose.yml)
+  - nginx.conf [directives](docker/nginx.conf)
 
 
 ## Comme ça on aime les Gif ?? oui
@@ -20,6 +30,5 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 ![Humorous Git GIF](its-Wrabbit-Time.gif)
 
 =======
-  - [D70 - Git / Github / Systèmes de versionning](D70_Git/README.md)
-  - [D42 - Consolidation des connaissances en informatique](D42_Consolidation_info/README.md)
+
 
