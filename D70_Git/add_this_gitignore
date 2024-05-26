@@ -46,3 +46,4 @@ Thumbs.db
 .php_cs.cache
 .vscode
 .idea
+.env
