@@ -27,6 +27,7 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 - [D46 - Php / Design Patterns](D46_Php_Design_Patterns/README.md)
 - [D11 - Php / Symfony](D11_Php_Symfony/README.md)
 - [AD9 - Consolidation des compétences système : Linux pour le web](AD9_Linux_web/README.md)
+  - Fonctionnement d'internet pour les nuls [schéma pour Jean-Didier Sitiho](Jean-Didier-Sitiho/Fonctionnement-internet-pour-les-nuls.jpg)
 
 ## Documentation
 
