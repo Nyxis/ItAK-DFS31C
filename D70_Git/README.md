@@ -71,6 +71,10 @@ Les configurations fonctionnent par sections, ici nous avons modifié la section
 Nous allons maintenant paramétrer Git pour qu'il utilise la clé SSH générée précédemment pour tous ses appels quand la commande est lancée depuis le dossier de travail.
 Dans la section "core" du fichier de configuration, ajoutez l'entrée ```sshCommand``` pour que la commande ssh lancée par Git utilise votre clé privée avec l'option ```-i <votre_workspace_ici>/.ssh/it_akademy_rsa```.
 
+Nous allons maintenant préparer notre premier dossier sous gestion de version.
+Dans votre workspace, créez un dossier (`mkdir <nom_dossier>`) puis ouvrez le (`cd <nom_dossier>`).
+Nous allons maintenant déclarer ce dossier sous gestion de version à Git via `git init -b main`. Git va créer un dossier `.git` dans lequel seront stockées toutes les informations nécessaires pour gérer les versions du dossier (on force la branche par défaut à `main` pour avoir une compatibilité facilité avec Github).
+
 Pour vérifier que votre installation fonctionne correctement, vous pouvez taper la commande ```git config --list --show-origin```. Doivent figurer dans cette liste les entrées `user.name`, `user.email` et `core.sshCommand`.
 
 ### Travailler à partir d'un repository existant
@@ -78,12 +82,20 @@ Pour vérifier que votre installation fonctionne correctement, vous pouvez taper
 Il est usuel de ne pas avoir accès en écriture à un dépôt Git, en particulier quand on travaille en Open Source. Pour proposer des modifications, Github implémente une mécanique de "fork", qui permet de faire une copie d'un dépôt vers votre espace personnel.
 
 Créez un fork de ce dépôt.
-Dans votre fork, récupérez son adresse SSH (sous le bouton "Code"), puis rendez vous dans votre dossier de travail.
+Dans votre fork, récupérez son adresse SSH (sous le bouton "Code"), puis rendez vous dans votre dossier de travail, créé à l'étape précédente.
 
-Tapez la commande ```git clone <adresse_ssh_du_fork>```. Rendez-vous maintenant dans le dossier créé, puis ajoutez un .gif humoristique sur Git au fichier ```README.md```.
+Pour lier votre dossier local à un dépôt distant, il reste à le déclarer en remote via la commande ```git remote add origin <adresse_ssh_du_fork>```. Notez que `origin` est un alias du dépôt, on utilise origin par convention.
+
+
+Vous avez maintenant
+
+
+Ajoutez un .gif humoristique sur Git au fichier ```README.md```.
 
 Sauvegardez vos modifications puis créez un commit. Envoyez ensuite ce commit à votre dépôt. Si la configuration a été bien réalisée, votre commit sera visible dans l'interface de Github, et le .gif affiché dans la page principale.
 Vérifiez également que le commit est à votre nom-prénom-email.
+
+
 
 ### Proposez une version au dépôt originel
 
