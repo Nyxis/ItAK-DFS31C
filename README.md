@@ -22,6 +22,8 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
   - Docker-compose ✅ [service configurations](docker/docker-compose.yml)
   - nginx.conf [directives](docker/nginx.conf)
 
+  - Fonctionnement d'internet pour les nuls [schéma pour Jean-Didier Sitiho](Jean-Didier-Sitiho/Fonctionnementd'internetpourlesnuls.jpg)
+
 
 ## Comme ça on aime les Gif ?? oui
 
