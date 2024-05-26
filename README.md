@@ -24,6 +24,7 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
   - Fonctionnement d'internet pour les nuls [schéma pour Jean-Didier Sitiho](Jean-Didier-Sitiho/Fonctionnementd'internetpourlesnuls.jpg)
 
+![Humorous Git GIF](Jean-Didier-Sitiho/internet-kid-meme.gif)
 
 ## Comme ça on aime les Gif ?? oui
 
