@@ -38,7 +38,7 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
 
 ![Un conflit ! de canard ! HAHA](https://media1.tenor.com/m/_unefcDI8B8AAAAC/pattes-de-canard-funny.gif "DES PATTES DE CANAAAAAAAAAAAAAAAAAAARD")
 
-- Fonctionnement d'internet pour les nuls [schéma pour Jean-Didier Sitiho](Jean-Didier-Sitiho/Fonctionnementd'internetpourlesnuls.jpg)
+- Fonctionnement d'internet pour les nuls [schéma pour Jean-Didier Sitiho](Jean-Didier-Sitiho/Fonctionnement-internet-pour-les-nuls.jpg.jpg)
   ![Humorous Git GIF](Jean-Didier-Sitiho/internet-kid-meme.gif)
 
 ## Comme ça on aime les Gif ?? oui
