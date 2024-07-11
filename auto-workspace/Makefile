@@ -1,4 +1,4 @@
-.PHONY: install create-workspace create-dirs generate-ssh-key configure-git install-software install-git
+.PHONY: install create-workspace create-dirs generate-ssh-key configure-git install-software install-brew install-git
 
 include .env
 
@@ -33,7 +33,13 @@ configure-git-global:
 	grep -qxF '[includeif "gitdir:$(WORKSPACE_PATH)/"]' ~/.gitconfig || echo '[includeif "gitdir:$(WORKSPACE_PATH)/"]\n\tpath = $(WORKSPACE_PATH)/.git/config' >> ~/.gitconfig
 	@echo "Global Git configured to include workspace-specific config."
 
-install-software: install-git
+install-software: install-brew install-git
+
+install-brew:
+	@echo "Checking for Homebrew..."
+	which brew || /bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	@echo "Homebrew installed."
+	eval "$(/opt/homebrew/bin/brew shellenv)"
 
 install-git:
 	@echo "Checking for Git..."
