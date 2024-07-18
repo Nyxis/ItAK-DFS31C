@@ -2,7 +2,7 @@
 
 namespace App\Product;
 
-class JsonFileAdapter implements PersistenceInterface
+class JsonFileAdapater implements PersistenceInterface
 {
     private string $filename;
 
