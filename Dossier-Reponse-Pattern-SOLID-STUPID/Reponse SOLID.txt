@@ -1,0 +1,13 @@
+Les principes SOLID : 
+
+
+Single Responsibility Principle : Une classe ne devrait avoir qu'une seule raison de changer.
+
+Open-Closed Principle : Les entités logicielles doivent être ouvertes à l'extension, mais fermées à la modification.
+
+Liskov Substitution Principle : Les objets d'une classe dérivée doivent pouvoir remplacer les objets de la classe de base sans affecter la cohérence du programme.
+
+Interface Segregation Principle : Il est préférable d'avoir plusieurs interfaces spécifiques plutôt qu'une seule interface générale.
+
+Dependency Inversion Principle : Les modules de haut niveau ne devraient pas dépendre des modules de bas niveau, mais tous deux devraient dépendre d'abstractions.
+

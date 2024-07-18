@@ -1,0 +1,17 @@
+Singleton :
+Explication : Le Singleton limite une classe à une seule instance, créant souvent des dépendances globales difficiles à gérer.
+
+Tight Coupling :
+Explication : Le couplage fort crée des dépendances rigides entre les classes, rendant le code difficile à modifier et à tester.
+
+Untestability :
+Explication : Un code non testable rend difficile ou impossible l'écriture de tests unitaires fiables.
+
+Premature Optimization :
+Explication : L'optimisation prématurée consiste à optimiser le code avant d'avoir identifié les véritables goulots d'étranglement.
+
+Indescriptive Naming :
+Explication : Les noms peu descriptifs rendent le code difficile à comprendre et à maintenir.
+
+Duplication :
+Explication : La duplication de code viole le principe DRY (Don't Repeat Yourself) et rend les modifications plus difficiles et sujettes aux erreurs.
