@@ -16,4 +16,3 @@ Explication : Les noms peu descriptifs rendent le code difficile à comprendre e
 Duplication :
 Explication : La duplication de code viole le principe DRY (Don't Repeat Yourself) et rend les modifications plus difficiles et sujettes aux erreurs.
 
-tt
