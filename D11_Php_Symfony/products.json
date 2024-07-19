@@ -1,0 +1,37 @@
+[
+    {
+        "id": 2,
+        "name": "\u0444\u0443\u043a\u0440\u0444\u043a\u0435\u0440",
+        "price": 23
+    },
+    {
+        "id": 3,
+        "name": "\u0412\u0430\u043c\u043b",
+        "price": 58
+    },
+    {
+        "id": 4,
+        "name": "pomme",
+        "price": 20
+    },
+    {
+        "id": 5,
+        "name": "Banana",
+        "price": 2
+    },
+    {
+        "id": 6,
+        "name": "bananes",
+        "price": 51
+    },
+    {
+        "id": 7,
+        "name": "Pomme",
+        "price": 89
+    },
+    {
+        "id": 8,
+        "name": "Kiwi",
+        "price": 87
+    }
+]
