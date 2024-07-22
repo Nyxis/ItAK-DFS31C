@@ -1,0 +1,15 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+# config/routes.yaml
+hello_world:
+    path: /hello_world
+    controller: App\Controller\HelloWorldController
+
+# Product
+produit:
+    path: /produit
+    controller: App\Controller\ProduitController
