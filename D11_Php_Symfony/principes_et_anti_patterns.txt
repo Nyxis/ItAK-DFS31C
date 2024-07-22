@@ -1,0 +1,12 @@
+Single Responsibility Principle: Une classe doit avoir une seule responsabilité.
+Open Closed Principle: Les entités doivent être extensibles sans être modifiables.
+Liskov Substitution Principle: Les sous-classes doivent être substituables à leurs super-classes.
+Interface Segregation Principle: Les interfaces doivent être spécifiques et non générales.
+Dependency Inversion Principle: Dépendre des abstractions plutôt que des implémentations.
+
+Singleton: Utiliser une seule instance de classe.
+Tight Coupling: Classes fortement dépendantes les unes des autres.
+Untestability: Code difficile à tester.
+Premature Optimization: Optimisation avant de comprendre le besoin.
+Indescriptive Naming: Noms peu descriptifs.
+Duplication: Répéter le même code à plusieurs endroits.
