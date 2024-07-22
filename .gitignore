@@ -1,0 +1,9 @@
+
+# Ignorer les fichiers de logs
+*.log
+# Ignorer les fichiers de cache 
+*.cache
+# Ignorer les fichiers temporaires 
+*.tmp
+# Ignorer les fichiers DS Store
+.DS_Store
