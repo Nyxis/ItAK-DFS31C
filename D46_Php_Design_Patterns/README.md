@@ -45,6 +45,7 @@ echo $singleton2->getData('name'); // Outputs: John Doe
 Définition : 
 - Tight Coupling : Lorsque deux classes sont fortement dépendantes l'une de l'autre, ce qui rend difficile la modification ou le remplacement d'une classe sans affecter l'autre.
 Exemple : 
+```
 class User {
     private $email;
 
@@ -68,12 +69,13 @@ class EmailService {
 $user = new User('john.doe@example.com');
 $emailService = new EmailService();
 $emailService->sendWelcomeEmail($user);
---- 
+```
 
 Définition : 
 - Untestability : Le code qui est difficile à tester, souvent en raison du manque de modularité, du couplage serré ou de l'utilisation de méthodes statiques et de variables globales.
 
-Exemple : 
+Exemple :
+```
 class User {
     private $email;
 
@@ -94,11 +96,12 @@ class User {
 // Usage
 $user = new User('john.doe@example.com');
 $user->sendWelcomeEmail();
----
+```
 
 Définition : 
 - Premature Optimization : La pratique d'optimiser le code avant qu'il ne soit nécessaire, ce qui conduit souvent à un code plus complexe et plus difficile à maintenir.
 Exemple : 
+```
 class User {
     private $firstName;
     private $lastName;
@@ -141,10 +144,11 @@ class User {
 // Usage
 $user = new User('John', 'Doe');
 echo $user->getFullName(); // Outputs: John Doe
----
+```
 Définition : 
 - Duplication : La présence de code redondant ou en double, qui peut entraîner des incohérences, des difficultés de maintenance et une taille de code plus importante.
 Exemple: 
+```
 class User {
     private $firstName;
     private $lastName;
@@ -192,4 +196,4 @@ class Customer {
         return $this->email;
     }
 }
----
+```
