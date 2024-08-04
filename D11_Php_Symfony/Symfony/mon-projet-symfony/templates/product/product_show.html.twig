@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du produit {{ product.designation }}{% endblock %}
+
+{% block body %}
+    <h1>Détails du produit</h1>
+
+    <div class="product-details">
+        <h2>{{ product.designation }}</h2>
+        
+        <p><strong>Univers :</strong> {{ product.univers }}</p>
+        
+        <p><strong>Prix :</strong> {{ product.price / 100 }}€</p>
+        
+        <p><strong>ID :</strong> {{ product.id }}</p>
+    </div>
+
+   <div class="button-group">
+                <form method="get" action="{{ path('product_edit', {'id': product.id}) }}" style="display: inline-block">
+            <button type="submit" class="btn btn-action">Modifier</button>
+        </form>
+        <form method="post" action="{{ path('product_delete', {'id': product.id}) }}" style="display: inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+            <button type="submit" class="btn btn-action btn-delete">Supprimer</button>
+        </form>
+    </div> 
+        <form method="get" action="{{ path('product_list') }}" style="display: inline-block">
+            <button type="submit" class="btn btn-action">Retour à la liste</button>
+        </form>
+
+{% endblock %}

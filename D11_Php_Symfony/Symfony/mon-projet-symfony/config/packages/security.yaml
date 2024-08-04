@@ -1,0 +1,13 @@
+# config/packages/security.yaml
+security:
+    # ...
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        main:
+            lazy: true
+            # Remove the custom_authenticator and logout configuration
+
+    # Remove the access_control and providers configuration

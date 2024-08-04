@@ -1,0 +1,10 @@
+{
+    "$schema": "/home/stoyanovclement/.local/share/nvim/mason/packages/phpactor/phpactor.schema.json",
+    "symfony.enabled": false,
+    "indexer.exclude_patterns": [
+        "/vendor/**/Tests/**/*",
+        "/vendor/**/tests/**/*",
+        "/var/cache/**/*",
+        "/vendor/composer/**/*"
+    ]
+}
