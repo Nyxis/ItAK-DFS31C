@@ -117,3 +117,87 @@ $productRepository = new ProductRepository(
 
 $productRepository->save($product);
 ```
+
+EVALUATION GUILLAUME L HULLIER
+
+Brève explication pour chaque principe SOLID
+
+Single Responsibility Principle (SRP) : Une classe doit avoir une seule responsabilité ou raison de changer.
+
+Open/Closed Principle (OCP) : Les entités logicielles doivent être ouvertes à l’extension mais fermées à la modification.
+
+Liskov Substitution Principle (LSP) : Les objets d’une classe dérivée doivent pouvoir remplacer les objets de la classe de base sans altérer le comportement du programme.
+
+Interface Segregation Principle (ISP) : Les clients ne doivent pas être forcés à dépendre d’interfaces qu’ils n’utilisent pas.
+
+Dependency Inversion Principle (DIP) : Les modules de haut niveau ne doivent pas dépendre des modules de bas niveau; les deux doivent dépendre d’abstractions.
+
+L'accronyme STUPID liste des pratiques contestables dans le développement informatique 
+	Singleton : Utiliser un seul objet global peut rendre le code difficile à tester et à maintenir 
+
+
+
+
+
+
+	Tight Coupling : Les classes fortement couplées dépendent trop les unes des autres, ce qui rend les modifications difficiles. 
+
+	Untestability : Le code qui ne peut pas être testé facilement est difficile à maintenir et à déboguer.
+
+	
+
+
+
+
+
+
+
+
+Premature Optimization : Optimiser le code trop tôt peut rendre le code complexe et difficile à comprendre 
+
+
+
+
+	Indescriptive Naming : Utiliser des noms de variables ou de fonctions non descriptifs rend le code difficile à lire et à comprendre. 
+
+
+
+
+EVALUATION GUILLAUME L HULLIER
+
+Brève explication pour chaque principe SOLID
+
+Single Responsibility Principle (SRP) : Une classe doit avoir une seule responsabilité ou raison de changer.
+
+Open/Closed Principle (OCP) : Les entités logicielles doivent être ouvertes à l’extension mais fermées à la modification.
+
+Liskov Substitution Principle (LSP) : Les objets d’une classe dérivée doivent pouvoir remplacer les objets de la classe de base sans altérer le comportement du programme.
+
+Interface Segregation Principle (ISP) : Les clients ne doivent pas être forcés à dépendre d’interfaces qu’ils n’utilisent pas.
+
+Dependency Inversion Principle (DIP) : Les modules de haut niveau ne doivent pas dépendre des modules de bas niveau; les deux doivent dépendre d’abstractions.
+
+L'accronyme STUPID liste des pratiques contestables dans le développement informatique 
+	Singleton : Utiliser un seul objet global peut rendre le code difficile à tester et à maintenir 
+
+![alt text](image.png)
+
+
+
+	Tight Coupling : Les classes fortement couplées dépendent trop les unes des autres, ce qui rend les modifications difficiles. 
+
+![alt text](image-1.png)
+
+	Untestability : Le code qui ne peut pas être testé facilement est difficile à maintenir et à déboguer.
+
+![alt text](image-2.png)
+	
+
+Premature Optimization : Optimiser le code trop tôt peut rendre le code complexe et difficile à comprendre 
+
+
+![alt text](image-3.png)
+
+	Indescriptive Naming : Utiliser des noms de variables ou de fonctions non descriptifs rend le code difficile à lire et à comprendre. 
+
+![alt text](image-4.png)
