@@ -1,0 +1,8 @@
+ex 1:
+ls | grep "log" | wc -l
+
+ex 2:
+grep "500" *.txt > result.log
+
+ex3:
+find . -type f -name "*.jpeg" -exec mv {} images/ \;
