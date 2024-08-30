@@ -1,0 +1,37 @@
+# config/services.yaml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Configuration du contrôleur ProductController
+    App\Controller\ProductController:
+        public: true
+        arguments:
+            $productAdapter: '@App\Service\ProductAdapter'
+            $productRepository: '@App\Repository\ProductRepository'
+
+    # Configuration de ProductAdapter
+    App\Service\ProductAdapter:
+        arguments:
+            $persistence: '@App\Persistence\ProductPersistenceInterface'
+
+    # Configuration de SqlPersistence
+    App\Persistence\SqlPersistence:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+
+    # Configuration de JsonPersistence
+    App\Persistence\JsonPersistence:
+        arguments:
+            $filePath: '%kernel.project_dir%/data/products.json'
+
+    # Liaison de l'interface ProductPersistenceInterface avec SqlPersistence
+    App\Persistence\ProductPersistenceInterface: '@App\Persistence\SqlPersistence'
+
+    App\Repository\ProductRepository:
+        autowire: true
+        autoconfigure: true
+    App\Controller\HelloWorldController:
+        tags: ['controller.service_arguments']

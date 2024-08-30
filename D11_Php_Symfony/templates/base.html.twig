@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Project{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('build/app.css') }}">
+
+</head>
+<body class="bg-gray-100">
+<nav class="bg-blue-600 p-4 text-white">
+    <ul class="flex space-x-4">
+        <li><a href="{{ path('produit_create') }}" class="hover:underline">Nouveau produit</a></li>
+        <li><a href="{{ path('produit_list') }}" class="hover:underline">Liste des produits</a></li>
+    </ul>
+</nav>
+<main class="p-6">
+    {% block body %}{% endblock %}
+</main>
+</body>
+</html>
