@@ -13,6 +13,7 @@ La pull request devra suivre le format "Nom Prenom - Titre exercice".
   - [D42 - Consolidation des connaissances en informatique](D42_Consolidation_info/README.md)
   - [D46 - Php / Design Patterns](D46_Php_Design_Patterns/README.md)
   - [D11 - Php / Symfony](D11_Php_Symfony/README.md)
+  - [AD9 - Consolidation des compétences système : Linux pour le web](AD9_Linux_web/README.md)
 
 ## Documentation
 
