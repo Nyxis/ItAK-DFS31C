@@ -59,6 +59,21 @@ deploy() {
     cleanup_old_releases "$KEEP_RELEASES"
 }
 
+# Rollback function
+rollback() {
+    echo "Rolling back to the previous release..."
+    local current_release=$(readlink "$PROJECT_ROOT/current")
+    local previous_release=$(ls -1td "$PROJECT_ROOT"/releases/*/ | sed -n '2p')
+
+    if [ -z "$previous_release" ]; then
+        echo "No previous release found. Cannot rollback."
+        exit 1
+    fi
+
+    ln -sfn "$(realpath "$previous_release")" "$PROJECT_ROOT/current"
+    echo "Rolled back to: $previous_release"
+}
+
 # Parse command line options
 while getopts ":k:" opt; do
   case $opt in
@@ -70,5 +85,18 @@ while getopts ":k:" opt; do
   esac
 done
 
+shift $((OPTIND-1))
+
 # Main script execution
-deploy
+case "$1" in
+    deploy)
+        deploy
+        ;;
+    rollback)
+        rollback
+        ;;
+    *)
+        echo "Usage: $0 [-k num_releases_to_keep] {deploy|rollback}"
+        exit 1
+        ;;
+esac
