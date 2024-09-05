@@ -34,3 +34,16 @@ if [ "$RELEASE_COUNT" -gt "$KEEP" ]; then
     echo "$OLD_RELEASES"
     rm -rf $OLD_RELEASES
 fi
+
+# Afficher récursivement les fichiers dans shared
+echo "Fichiers dans shared :"
+ls -R project/shared
+
+# Créer des liens symboliques pour les fichiers dans shared
+for file in $(find project/shared -type f); do
+    ln -s "$file" "project/releases/$DATE/$(basename $file)"
+done
+
+# Créer un lien symbolique 'current' vers la dernière release
+ln -sfn "project/releases/$DATE" project/current
+echo "Le lien 'current' pointe vers : project/releases/$DATE"
