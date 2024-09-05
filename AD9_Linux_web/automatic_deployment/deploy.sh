@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables globales
-PROJECT_ROOT="./project"
+PROJECT_ROOT=$(realpath "./project")
 RELEASES_DIR="${PROJECT_ROOT}/releases"
 SHARED_DIR="${PROJECT_ROOT}/shared"
 CURRENT_LINK="${PROJECT_ROOT}/current"
