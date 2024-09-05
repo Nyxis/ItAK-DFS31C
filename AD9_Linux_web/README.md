@@ -2,7 +2,7 @@
 
 ## Chaîner les commandes usuelles
 
-Pour les exercices suivants, consignez la commande demandée dans un fichier, joignez éventuellement des caputures d'écran.
+Pour les exercices suivants, consignez la commande demandée dans un fichier, joignez éventuellement des captures d'écran.
 
 ### Filtrer et compter des lignes
 
@@ -14,18 +14,19 @@ _Tips_ : ```wc```
 
 ### Rechercher un motif
 
-Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient les code "500", et consignez les dans un nouveau fichier .log.
+Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient les codes "500", et consignez-les dans un nouveau fichier .log.
 
 ### Déplacer des fichiers
 
-Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez les dans un dossier ```images```.
+Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez-les dans un dossier ```images```.
 
 ## Création d'un script de déploiement automatique
 
-Le but de l'exercice est de créer un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques Dev-Ops.
+Le but de l'exercice est de créer un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques DevOps.
 Pour les besoins du TP, nous exécuterons le script en local.
 
 La structure de dossier à obtenir est la suivante :
+
 ```
 | project
 | \
@@ -47,6 +48,7 @@ La structure de dossier à obtenir est la suivante :
 |  |
 ```
 
+
 ### Création de la structure du dossier
 
 Créez votre script à la racine du dossier de votre TP, puis votre dossier projet et les sous-dossiers "shared" et "release".
@@ -55,7 +57,7 @@ Commencez par afficher la date courante dans le terminal au format YYYYMMDDHHmms
 Utilisez ensuite cette création de date pour créer un sous-dossier dans "release" avec comme nom cette même date.
 
 Afin d'éviter de stocker de trop nombreuses instances de projet, ajoutez une commande en fin de script qui supprime le dossier release à l'exception des 5 derniers dossiers créés. Modifiez votre script pour qu'une option puisse être passée au lancement pour modifier ce nombre de releases conservées, par exemple "--keep-last-x-releases".
-__Tips__ : utilisez la fonction Shell `getopts ":ab:c"`.
+_Tips_ : utilisez la fonction Shell `getopts ":ab:c"`.
 
 ### Maitrise des liens
 
@@ -63,8 +65,8 @@ Le dossier "shared" sert à publier des fichiers non versionnés dans une releas
 
 Dans un premier temps, affichez récursivement dans le terminal tous les fichiers présents dans le dossier "shared".
 Grâce à la commande précédente, copiez chacun de ces fichiers en suivant la même structure dans le dossier de release créé à l'étape 1.
-Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared"
-__Tips__ : `ln -s chemin_fichier_source chemin_fichier_cible`
+Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared".
+_Tips_ : `ln -s chemin_fichier_source chemin_fichier_cible`
 
 Utilisez la même technique pour qu'il existe toujours un lien "current" vers la release en cours.
 Dans un premier temps, le lien se fera sur la dernière release créée.
@@ -74,8 +76,8 @@ Dans un premier temps, le lien se fera sur la dernière release créée.
 Modifiez votre script pour que l'on puisse donner une commande à votre script.
 Créez les deux commandes "deploy" et "rollback", de manière à lancer votre script comme suit : `./mon_script.sh deploy`.
 
-La commande "deploy" lance la création d'une nouvelle release etc..., pendant que la commande "rollback" va permettre de retourner à la version précédente.
+La commande "deploy" lance la création d'une nouvelle release, tandis que la commande "rollback" permet de retourner à la version précédente.
 Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pour qu'il pointe sur la release précédente.
-__Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
+_Tips_ : `head` et `tail` permettent d'obtenir des éléments précis dans une liste.
 
 Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
