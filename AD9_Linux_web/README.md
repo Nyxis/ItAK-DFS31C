@@ -80,6 +80,65 @@ __Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans un
 
 Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
 
+## Solution 
+
+Nous avons créé un script de déploiement qui répond à toutes les exigences spécifiées dans l'exercice. Voici un aperçu des fonctionnalités implémentées et comment utiliser le script :
+
+### Fonctionnalités Implémentées
+
+1. Création de la structure de répertoire requise (project, releases, shared).
+2. Horodatage automatique des nouvelles releases.
+3. Création de liens symboliques pour les fichiers partagés.
+4. Lien symbolique 'current' pointant vers la dernière release.
+5. Nettoyage des anciennes releases, ne gardant qu'un nombre spécifié (par défaut 5).
+6. Fonctionnalités de déploiement et de rollback.
+7. Option pour spécifier le nombre de releases à conserver.
+
+### Comment Utiliser le Script
+
+1. Assurez-vous que le script est exécutable :
+   ```
+   chmod +x Deployment_script.sh
+   ```
+
+2. Pour déployer une nouvelle release :
+   ```
+   ./Deployment_script.sh deploy
+   ```
+
+3. Pour effectuer un rollback vers la release précédente :
+   ```
+   ./Deployment_script.sh rollback
+   ```
+
+4. Pour spécifier le nombre de releases à conserver (par exemple, 3) :
+   ```
+   ./Deployment_script.sh -k 3 deploy
+   ```
+
+### Structure et Fonctionnalité du Script
+
+- Le script crée un répertoire horodaté pour chaque nouvelle release.
+- Les fichiers partagés sont liés symboliquement dans chaque répertoire de release.
+- Le lien symbolique 'current' est mis à jour pour pointer vers la dernière release après chaque déploiement.
+- La fonctionnalité de rollback permet de revenir à la release précédente.
+- Les anciennes releases sont automatiquement nettoyées, ne gardant que le nombre spécifié de releases récentes.
+
+### Gestion des Erreurs et Cas Particuliers
+
+- Le script vérifie l'existence des répertoires nécessaires.
+- Il gère les cas où il n'y a pas de releases précédentes pour le rollback.
+- L'analyse des arguments de ligne de commande est implémentée pour spécifier le nombre de releases à conserver.
+
+### Améliorations Potentielles
+
+- Implémenter la journalisation pour toutes les actions effectuées par le script.
+- Ajouter un mode de simulation pour simuler le déploiement sans effectuer de changements.
+- Améliorer la gestion des erreurs et ajouter des messages d'erreur plus détaillés.
+- Implémenter une fonctionnalité de rollback multiple pour revenir en arrière de plusieurs versions à la fois.
+
+En suivant ces étapes et en utilisant le script fourni, nous avons créé un système de déploiement robuste qui suit les meilleures pratiques DevOps pour la gestion des releases et des configurations.
+
 ### Installation des sources
 
 Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
