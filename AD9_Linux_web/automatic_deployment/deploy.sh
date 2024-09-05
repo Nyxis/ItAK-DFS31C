@@ -18,14 +18,13 @@ create_project_structure() {
     echo "Structure du projet créée"
 }
 
-# Fonction pour nettoyer les anciennes releases
-cleanup_old_releases() {
-    local keep_releases=${1:-$DEFAULT_KEEP_RELEASES}
-    local releases_to_delete=$(ls -t ${RELEASES_DIR} | tail -n +$((keep_releases + 1)))
-    if [ -n "${releases_to_delete}" ]; then
-        echo "${releases_to_delete}" | xargs -I {} rm -rf "${RELEASES_DIR}/{}"
-        echo "Anciennes releases nettoyées"
-    fi
+# Fonction pour créer une nouvelle release
+create_new_release() {
+    local release_date=$(get_current_date)
+    local release_dir="${RELEASES_DIR}/${release_date}"
+    mkdir -p "${release_dir}"
+    echo "Nouvelle release créée : ${release_dir}"
+    return 0
 }
 
 # Fonction pour copier les fichiers partagés
@@ -47,9 +46,42 @@ update_current_link() {
     echo "Lien 'current' mis à jour vers ${latest_release}"
 }
 
+# Fonction pour nettoyer les anciennes releases
+cleanup_old_releases() {
+    local keep_releases=${1:-$DEFAULT_KEEP_RELEASES}
+    local releases_to_delete=$(ls -t ${RELEASES_DIR} | tail -n +$((keep_releases + 1)))
+    if [ -n "${releases_to_delete}" ]; then
+        echo "${releases_to_delete}" | xargs -I {} rm -rf "${RELEASES_DIR}/{}"
+        echo "Anciennes releases nettoyées"
+    fi
+}
+
+# Fonction pour effectuer un rollback
+perform_rollback() {
+    local current_release=$(readlink "${CURRENT_LINK}")
+    local previous_release=$(ls -t ${RELEASES_DIR} | grep -v "$(basename "${current_release}")" | head -n1)
+    if [ -n "${previous_release}" ]; then
+        ln -sfn "${RELEASES_DIR}/${previous_release}" "${CURRENT_LINK}"
+        echo "Rollback effectué vers ${previous_release}"
+    else
+        echo "Impossible d'effectuer le rollback : aucune release précédente trouvée"
+        return 1
+    fi
+}
+
+# Fonction pour le déploiement
+deploy() {
+    create_project_structure
+    create_new_release
+    copy_shared_files
+    update_current_link
+    cleanup_old_releases "$1"
+}
+
 # Fonction principale
 main() {
     local keep_releases=$DEFAULT_KEEP_RELEASES
+    local command=""
 
     # Traitement des options
     while getopts ":k:" opt; do
@@ -67,15 +99,23 @@ main() {
                 ;;
         esac
     done
+    shift $((OPTIND -1))
 
-    create_project_structure
-    current_date=$(get_current_date)
-    echo "Date courante : ${current_date}"
-    mkdir -p "${RELEASES_DIR}/${current_date}"
-    echo "Nouveau dossier de release créé : ${RELEASES_DIR}/${current_date}"
-    copy_shared_files
-    update_current_link
-    cleanup_old_releases $keep_releases
+    # Récupération de la commande
+    command=$1
+
+    case $command in
+        deploy)
+            deploy $keep_releases
+            ;;
+        rollback)
+            perform_rollback
+            ;;
+        *)
+            echo "Usage: $0 [-k nombre_de_releases] {deploy|rollback}"
+            exit 1
+            ;;
+    esac
 }
 
 # Exécution du script
