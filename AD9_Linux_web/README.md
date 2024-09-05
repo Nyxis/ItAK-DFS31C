@@ -138,3 +138,22 @@ Nous avons créé un script de déploiement qui répond à toutes les exigences 
 - Implémenter une fonctionnalité de rollback multiple pour revenir en arrière de plusieurs versions à la fois.
 
 En suivant ces étapes et en utilisant le script fourni, nous avons créé un système de déploiement robuste qui suit les meilleures pratiques DevOps pour la gestion des releases et des configurations.
+
+### Installation des sources
+
+Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
+Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi votre script doit être capable de récupérer ces sources via Git.
+
+Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
+
+Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
+ - un dépôt Github/Gitlab précis
+ - une version précise (tag ou branche)
+ - un dossier précis du dépôt
+
+__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
+
+Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
+Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
+
+__Tips__ : `source .env`
