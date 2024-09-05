@@ -1,16 +1,63 @@
 #!/bin/bash
 
-# Deployment script
+# Load environment variables
+if [ -f .env ]; then
+    source .env
+fi
+
+# Default values (can be overridden by .env file)
+GIT_REPO=${GIT_REPO:-"https://github.com/Nyxis/ItAK-DFS31C.git"}
+GIT_BRANCH=${GIT_BRANCH:-"main"}
+GIT_SUBDIRECTORY=${GIT_SUBDIRECTORY:-"clone_me"}
 
 # Set the project root directory
 PROJECT_ROOT="./project"
 
 # Default number of releases to keep
-KEEP_RELEASES=5
+KEEP_RELEASES=${KEEP_RELEASES:-5}
 
 # Function to get current timestamp
 get_timestamp() {
     date +"%Y%m%d%H%M%S"
+}
+
+# Function to check if git is available
+check_git() {
+    if ! command -v git &> /dev/null; then
+        echo "Git is not installed or not in PATH. Please install git and try again."
+        exit 1
+    fi
+}
+
+# Function to clone repository
+clone_repo() {
+    local release_dir=$1
+
+    # Remove temp_clone if it exists
+    rm -rf temp_clone
+
+    echo "Cloning repository: $GIT_REPO (branch: $GIT_BRANCH)"
+    if git clone -b "$GIT_BRANCH" "$GIT_REPO" temp_clone; then
+        if [ -d "temp_clone/$GIT_SUBDIRECTORY" ]; then
+            echo "Moving contents of $GIT_SUBDIRECTORY to $release_dir"
+            mv "temp_clone/$GIT_SUBDIRECTORY"/* "$release_dir/"
+        elif [ "$GIT_SUBDIRECTORY" = "." ]; then
+            echo "Moving all contents to $release_dir"
+            mv temp_clone/* "$release_dir/"
+        else
+            echo "Specified subdirectory '$GIT_SUBDIRECTORY' not found in the repository."
+            echo "Available directories:"
+            ls -R temp_clone
+            rm -rf temp_clone
+            exit 1
+        fi
+    else
+        echo "Failed to clone repository"
+        exit 1
+    fi
+
+    # Clean up
+    rm -rf temp_clone
 }
 
 # Function to create symlinks for shared files
@@ -41,12 +88,17 @@ cleanup_old_releases() {
 
 # Main deployment function
 deploy() {
+    check_git
+
     local timestamp=$(get_timestamp)
     local release_dir="$PROJECT_ROOT/releases/$timestamp"
 
     # Create the new release directory
     mkdir -p "$release_dir"
     echo "Created new release directory: $release_dir"
+
+    # Clone the repository
+    clone_repo "$release_dir"
 
     # Create symlinks for shared files
     create_shared_symlinks "$release_dir"
@@ -75,13 +127,13 @@ rollback() {
 }
 
 # Parse command line options
-while getopts ":k:" opt; do
+while getopts ":k:r:b:d:" opt; do
   case $opt in
-    k) KEEP_RELEASES="$OPTARG"
-    ;;
-    \?) echo "Invalid option -$OPTARG" >&2
-    exit 1
-    ;;
+    k) KEEP_RELEASES="$OPTARG" ;;
+    r) GIT_REPO="$OPTARG" ;;
+    b) GIT_BRANCH="$OPTARG" ;;
+    d) GIT_SUBDIRECTORY="$OPTARG" ;;
+    \?) echo "Invalid option -$OPTARG" >&2; exit 1 ;;
   esac
 done
 
@@ -96,7 +148,7 @@ case "$1" in
         rollback
         ;;
     *)
-        echo "Usage: $0 [-k num_releases_to_keep] {deploy|rollback}"
+        echo "Usage: $0 [-k num_releases] [-r repo_url] [-b branch] [-d subdirectory] {deploy|rollback}"
         exit 1
         ;;
 esac
