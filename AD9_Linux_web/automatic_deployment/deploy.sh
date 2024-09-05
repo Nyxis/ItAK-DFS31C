@@ -4,6 +4,7 @@
 PROJECT_ROOT="./project"
 RELEASES_DIR="${PROJECT_ROOT}/releases"
 SHARED_DIR="${PROJECT_ROOT}/shared"
+CURRENT_LINK="${PROJECT_ROOT}/current"
 DEFAULT_KEEP_RELEASES=5
 
 # Fonction pour obtenir la date au format YYYYMMDDHHmmss
@@ -25,6 +26,25 @@ cleanup_old_releases() {
         echo "${releases_to_delete}" | xargs -I {} rm -rf "${RELEASES_DIR}/{}"
         echo "Anciennes releases nettoyées"
     fi
+}
+
+# Fonction pour copier les fichiers partagés
+copy_shared_files() {
+    local release_dir="${RELEASES_DIR}/$(ls -t ${RELEASES_DIR} | head -n1)"
+    find "${SHARED_DIR}" -type f | while read file; do
+        local relative_path="${file#${SHARED_DIR}/}"
+        local target_dir="${release_dir}/$(dirname "${relative_path}")"
+        mkdir -p "${target_dir}"
+        ln -s "${file}" "${target_dir}/$(basename "${file}")"
+    done
+    echo "Fichiers partagés liés symboliquement"
+}
+
+# Fonction pour mettre à jour le lien current
+update_current_link() {
+    local latest_release=$(ls -t ${RELEASES_DIR} | head -n1)
+    ln -sfn "${RELEASES_DIR}/${latest_release}" "${CURRENT_LINK}"
+    echo "Lien 'current' mis à jour vers ${latest_release}"
 }
 
 # Fonction principale
@@ -53,6 +73,8 @@ main() {
     echo "Date courante : ${current_date}"
     mkdir -p "${RELEASES_DIR}/${current_date}"
     echo "Nouveau dossier de release créé : ${RELEASES_DIR}/${current_date}"
+    copy_shared_files
+    update_current_link
     cleanup_old_releases $keep_releases
 }
 
