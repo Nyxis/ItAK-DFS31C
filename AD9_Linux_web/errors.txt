@@ -1,0 +1,4 @@
+404 Not Found
+500 Internal Server Error
+200 OK
+500 Server overload
