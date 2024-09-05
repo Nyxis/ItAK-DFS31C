@@ -24,7 +24,17 @@ deploy() {
 
     echo "Created new release directory: $release_dir"
 
-    # TODO: Add more deployment steps here
+    # Copy files from shared directory
+    if [ -d "$PROJECT_ROOT/shared" ]; then
+        echo "Copying files from shared directory..."
+        cp -R "$PROJECT_ROOT/shared"/* "$release_dir/"
+    else
+        echo "Shared directory not found. Skipping file copy."
+    fi
+
+    # Update the 'current' symlink
+    ln -sfn "$release_dir" "$PROJECT_ROOT/current"
+    echo "Updated 'current' symlink to point to the new release."
 }
 
 # Main script execution
