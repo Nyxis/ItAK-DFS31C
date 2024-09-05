@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1 class="text-2xl font-bold mb-4">Liste des produits</h1>
+    <table class="min-w-full">
+        <thead>
+            <tr>
+                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 font-medium text-gray-500 uppercase tracking-wider">Prix</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for product in products %}
+            <tr>
+                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">{{ product.name }}</td>
+                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
+                    {{ product.price }} {% if product.price > app.config.get('high_price_threshold') %}✨{% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
