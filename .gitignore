@@ -7,3 +7,4 @@
 *.tmp
 # Ignorer les fichiers DS Store
 .DS_Store
+D11_Php_Symfony/Symfony2
