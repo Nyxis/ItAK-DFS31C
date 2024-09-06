@@ -76,7 +76,7 @@ case "$1" in
     rollback
     ;;
   *)
-    echo "Usage: $0 {deploy|rollback}"
+    echo -e "❌ERROR: \n→ Usage: $0 {deploy|rollback}"
     exit 1
     ;;
 esac
