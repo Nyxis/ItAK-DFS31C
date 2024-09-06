@@ -1,0 +1,1271 @@
+diff --git a/AD9_Linux_web/Deployment_script.1 b/AD9_Linux_web/Deployment_script.1
+new file mode 100644
+index 0000000..700d2e4
+--- /dev/null
++++ b/AD9_Linux_web/Deployment_script.1
+@@ -0,0 +1,103 @@
++.TH DEPLOYMENT_SCRIPT 1 "September 2024" "Version 1.0.0" "User Commands"
++.SH NAME
++Deployment_script \- Automated deployment script for Git-based projects
++.SH SYNOPSIS
++.B Deployment_script.sh
++[\fIOPTIONS\fR] {deploy|rollback}
++.SH DESCRIPTION
++.B Deployment_script
++is a Bash script that automates the deployment process of a Git-based project. It can clone a specified repository, create timestamped release directories, manage symlinks, perform builds, and handle rollbacks.
++.SH OPTIONS
++.TP
++.BR \-k " " \fINUM\fR
++Specify the number of recent releases to keep (default: 5)
++.TP
++.BR \-r " " \fIURL\fR
++Specify the Git repository URL
++.TP
++.BR \-b " " \fIBRANCH\fR
++Specify the Git branch to use
++.TP
++.BR \-d " " \fIDIR\fR
++Specify the subdirectory in the repository to deploy
++.TP
++.BR \-B " " \fICMD\fR
++Specify a build command to execute during deployment
++.TP
++.BR \-R " " \fICMD\fR
++Specify a rollback command to execute during rollback
++.TP
++.BR \-h ", " \-\-help
++Display help message and exit
++.TP
++.BR \-v ", " \-\-verbose
++Display debug messages
++.TP
++.BR \-q ", " \-\-quiet
++Disable all output except prompts
++.TP
++.BR \-n ", " \-\-no\-interaction
++Disable prompts (use default answers)
++.TP
++.BR \-V ", " \-\-version
++Display script version and exit
++.SH COMMANDS
++.TP
++.B deploy
++Create a new release
++.TP
++.B rollback
++Revert to the previous release
++.SH ENVIRONMENT
++.TP
++.B GIT_REPO
++Default Git repository URL
++.TP
++.B GIT_BRANCH
++Default Git branch
++.TP
++.B GIT_SUBDIRECTORY
++Default subdirectory to deploy
++.TP
++.B KEEP_RELEASES
++Default number of releases to keep
++.SH FILES
++.TP
++.I .env
++Configuration file for default environment variables
++.TP
++.I Makefile
++If present in the project root, can be used for building (with user confirmation)
++.SH EXAMPLES
++.TP
++Deploy using default settings:
++.B ./Deployment_script.sh deploy
++.TP
++Deploy with custom repository and branch:
++.B ./Deployment_script.sh -r https://github.com/user/repo.git -b develop deploy
++.TP
++Deploy with a specific build command:
++.B ./Deployment_script.sh -B "npm run build" deploy
++.TP
++Rollback to previous release:
++.B ./Deployment_script.sh rollback
++.TP
++Rollback with a specific rollback command:
++.B ./Deployment_script.sh -R "php artisan migrate:rollback" rollback
++.TP
++Deploy in verbose mode:
++.B ./Deployment_script.sh --verbose deploy
++.TP
++Deploy without user interaction:
++.B ./Deployment_script.sh --no-interaction deploy
++.SH EXIT STATUS
++The script exits 0 on success, and >0 if an error occurs.
++.SH AUTHOR
++Written by [Your Name].
++.SH REPORTING BUGS
++Report bugs to: [Your Email or Bug Reporting URL]
++.SH COPYRIGHT
++Copyright © 2024 [Your Name or Organization]. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
++This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
++.SH SEE ALSO
++git(1), make(1), bash(1)
+diff --git a/AD9_Linux_web/Deployment_script.sh b/AD9_Linux_web/Deployment_script.sh
+new file mode 100755
+index 0000000..c5aa4e5
+--- /dev/null
++++ b/AD9_Linux_web/Deployment_script.sh
+@@ -0,0 +1,209 @@
++#!/bin/bash
++
++# Version
++VERSION="1.0.0"
++
++# Load environment variables
++if [ -f .env ]; then
++    source .env
++fi
++
++# Default values (can be overridden by .env file)
++GIT_REPO=${GIT_REPO:-"https://github.com/Nyxis/ItAK-DFS31C.git"}
++GIT_BRANCH=${GIT_BRANCH:-"main"}
++GIT_SUBDIRECTORY=${GIT_SUBDIRECTORY:-"clone_me"}
++PROJECT_ROOT="./project"
++KEEP_RELEASES=${KEEP_RELEASES:-5}
++BUILD_COMMAND=""
++ROLLBACK_COMMAND=""
++VERBOSE=false
++QUIET=false
++NO_INTERACTION=false
++
++# Function to get current timestamp
++get_timestamp() {
++    date +"%Y%m%d%H%M%S"
++}
++
++# Function to check if git is available
++check_git() {
++    if ! command -v git &> /dev/null; then
++        echo "Git is not installed or not in PATH. Please install git and try again."
++        exit 1
++    fi
++}
++
++# Function to clone repository
++clone_repo() {
++    local release_dir=$1
++    rm -rf temp_clone
++    $VERBOSE && echo "Cloning repository: $GIT_REPO (branch: $GIT_BRANCH)"
++    if git clone -b "$GIT_BRANCH" "$GIT_REPO" temp_clone; then
++        if [ -d "temp_clone/$GIT_SUBDIRECTORY" ]; then
++            $VERBOSE && echo "Moving contents of $GIT_SUBDIRECTORY to $release_dir"
++            mv "temp_clone/$GIT_SUBDIRECTORY"/* "$release_dir/"
++        elif [ "$GIT_SUBDIRECTORY" = "." ]; then
++            $VERBOSE && echo "Moving all contents to $release_dir"
++            mv temp_clone/* "$release_dir/"
++        else
++            echo "Specified subdirectory '$GIT_SUBDIRECTORY' not found in the repository."
++            echo "Available directories:"
++            ls -R temp_clone
++            rm -rf temp_clone
++            exit 1
++        fi
++    else
++        echo "Failed to clone repository"
++        exit 1
++    fi
++    rm -rf temp_clone
++}
++
++# Function to create symlinks for shared files
++create_shared_symlinks() {
++    local release_dir="$1"
++    if [ -d "$PROJECT_ROOT/shared" ]; then
++        $VERBOSE && echo "Creating symlinks for shared files..."
++        for file in "$PROJECT_ROOT/shared"/*; do
++            if [ -e "$file" ]; then
++                ln -s "$(realpath "$file")" "$release_dir/$(basename "$file")"
++            fi
++        done
++    else
++        $VERBOSE && echo "Shared directory not found. Skipping symlink creation."
++    fi
++}
++
++# Function to cleanup old releases
++cleanup_old_releases() {
++    local releases_to_keep=$1
++    $VERBOSE && echo "Cleaning up old releases, keeping last $releases_to_keep..."
++    cd "$PROJECT_ROOT/releases" || exit
++    ls -1td */ | tail -n +$((releases_to_keep + 1)) | while read -r dir; do
++        rm -rf "$dir"
++    done
++    cd - > /dev/null || exit
++}
++
++# Main deployment function
++deploy() {
++    check_git
++    local timestamp=$(get_timestamp)
++    local release_dir="$PROJECT_ROOT/releases/$timestamp"
++    mkdir -p "$release_dir"
++    $VERBOSE && echo "Created new release directory: $release_dir"
++    clone_repo "$release_dir"
++    create_shared_symlinks "$release_dir"
++
++    # Build step
++    if [ -n "$BUILD_COMMAND" ]; then
++        $VERBOSE && echo "Executing build command: $BUILD_COMMAND"
++        if ! eval "$BUILD_COMMAND"; then
++            echo "Build failed. Stopping deployment."
++            exit 1
++        fi
++    elif [ -f "$release_dir/Makefile" ]; then
++        if $NO_INTERACTION; then
++            $VERBOSE && echo "Makefile detected. Running 'make' (non-interactive mode)."
++            if ! make -C "$release_dir"; then
++                echo "Make failed. Stopping deployment."
++                exit 1
++            fi
++        else
++            read -p "Makefile detected. Run 'make'? (Y/n) " -n 1 -r
++            echo
++            if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
++                if ! make -C "$release_dir"; then
++                    echo "Make failed. Stopping deployment."
++                    exit 1
++                fi
++            fi
++        fi
++    fi
++
++    ln -sfn "$(realpath "$release_dir")" "$PROJECT_ROOT/current"
++    $VERBOSE && echo "Updated 'current' symlink to point to the new release."
++    cleanup_old_releases "$KEEP_RELEASES"
++}
++
++# Rollback function
++rollback() {
++    $VERBOSE && echo "Rolling back to the previous release..."
++    local current_release=$(readlink "$PROJECT_ROOT/current")
++    local previous_release=$(ls -1td "$PROJECT_ROOT"/releases/*/ | sed -n '2p')
++
++    if [ -z "$previous_release" ]; then
++        echo "No previous release found. Cannot rollback."
++        exit 1
++    fi
++
++    ln -sfn "$(realpath "$previous_release")" "$PROJECT_ROOT/current"
++    $VERBOSE && echo "Rolled back to: $previous_release"
++
++    if [ -n "$ROLLBACK_COMMAND" ]; then
++        $VERBOSE && echo "Executing rollback command: $ROLLBACK_COMMAND"
++        if ! eval "$ROLLBACK_COMMAND"; then
++            echo "Rollback command failed."
++            exit 1
++        fi
++    fi
++}
++
++# Function to display help
++display_help() {
++    echo "Usage: $0 [OPTIONS] {deploy|rollback}"
++    echo "Options:"
++    echo "  -k NUM      Number of releases to keep (default: 5)"
++    echo "  -r URL      Git repository URL"
++    echo "  -b BRANCH   Git branch to use"
++    echo "  -d DIR      Subdirectory in the repository to deploy"
++    echo "  -B CMD      Build command to execute"
++    echo "  -R CMD      Rollback command to execute"
++    echo "  -h, --help  Display this help message"
++    echo "  -v, --verbose  Display debug messages"
++    echo "  -q, --quiet    Disable all output except prompts"
++    echo "  -n, --no-interaction  Disable prompts (use default answers)"
++    echo "  -V, --version  Display script version"
++}
++
++# Parse command line options
++while [[ $# -gt 0 ]]; do
++    case $1 in
++        -k) KEEP_RELEASES="$2"; shift 2 ;;
++        -r) GIT_REPO="$2"; shift 2 ;;
++        -b) GIT_BRANCH="$2"; shift 2 ;;
++        -d) GIT_SUBDIRECTORY="$2"; shift 2 ;;
++        -B) BUILD_COMMAND="$2"; shift 2 ;;
++        -R) ROLLBACK_COMMAND="$2"; shift 2 ;;
++        -h|--help) display_help; exit 0 ;;
++        -v|--verbose) VERBOSE=true; shift ;;
++        -q|--quiet) QUIET=true; shift ;;
++        -n|--no-interaction) NO_INTERACTION=true; shift ;;
++        -V|--version) echo "Version $VERSION"; exit 0 ;;
++        deploy|rollback) ACTION=$1; shift ;;
++        *) echo "Unknown option: $1" >&2; exit 1 ;;
++    esac
++done
++
++# Main script execution
++if $QUIET; then
++    exec 3>&1 4>&2
++    exec 1>/dev/null 2>&1
++fi
++
++case "$ACTION" in
++    deploy)
++        deploy
++        ;;
++    rollback)
++        rollback
++        ;;
++    *)
++        echo "Usage: $0 [OPTIONS] {deploy|rollback}"
++        exit 1
++        ;;
++esac
++
++if $QUIET; then
++    exec 1>&3 2>&4
++fi
+diff --git a/AD9_Linux_web/README.md b/AD9_Linux_web/README.md
+index 4da0dab..20e2168 100644
+--- a/AD9_Linux_web/README.md
++++ b/AD9_Linux_web/README.md
+@@ -10,7 +10,7 @@ Lister tous les fichiers dans un répertoire.
+ Filtrer la liste pour ne montrer que les fichiers qui contiennent le mot "log" dans leur nom.
+ Compter combien de fichiers correspondent à ce critère.
+ 
+-_Tips_ : ```wc```
++_Tips_ : `wc`
+ 
+ ### Rechercher un motif
+ 
+@@ -18,7 +18,7 @@ Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient
+ 
+ ### Déplacer des fichiers
+ 
+-Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez les dans un dossier ```images```.
++Cherchez tous les fichiers `.jpeg` dans une arborescence puis déplacez les dans un dossier `images`.
+ 
+ ## Création d'un script de déploiement automatique
+ 
+@@ -26,6 +26,7 @@ Le but de l'exercice est de créer un script shell qui déploie automatiquement
+ Pour les besoins du TP, nous exécuterons le script en local.
+ 
+ La structure de dossier à obtenir est la suivante :
++
+ ```
+ | project
+ | \
+@@ -55,7 +56,7 @@ Commencez par afficher la date courante dans le terminal au format YYYYMMDDHHmms
+ Utilisez ensuite cette création de date pour créer un sous-dossier dans "release" avec comme nom cette même date.
+ 
+ Afin d'éviter de stocker de trop nombreuses instances de projet, ajoutez une commande en fin de script qui supprime le dossier release à l'exception des 5 derniers dossiers créés. Modifiez votre script pour qu'une option puisse être passée au lancement pour modifier ce nombre de releases conservées, par exemple "--keep-last-x-releases".
+-__Tips__ : utilisez la fonction Shell `getopts ":ab:c"`.
++**Tips** : utilisez la fonction Shell `getopts ":ab:c"`.
+ 
+ ### Maitrise des liens
+ 
+@@ -64,7 +65,7 @@ Le dossier "shared" sert à publier des fichiers non versionnés dans une releas
+ Dans un premier temps, affichez récursivement dans le terminal tous les fichiers présents dans le dossier "shared".
+ Grâce à la commande précédente, copiez chacun de ces fichiers en suivant la même structure dans le dossier de release créé à l'étape 1.
+ Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared"
+-__Tips__ : `ln -s chemin_fichier_source chemin_fichier_cible`
++**Tips** : `ln -s chemin_fichier_source chemin_fichier_cible`
+ 
+ Utilisez la même technique pour qu'il existe toujours un lien "current" vers la release en cours.
+ Dans un premier temps, le lien se fera sur la dernière release créée.
+@@ -76,7 +77,7 @@ Créez les deux commandes "deploy" et "rollback", de manière à lancer votre sc
+ 
+ La commande "deploy" lance la création d'une nouvelle release etc..., pendant que la commande "rollback" va permettre de retourner à la version précédente.
+ Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pour qu'il pointe sur la release précédente.
+-__Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
++**Tips** : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
+ 
+ Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
+ 
+@@ -88,16 +89,17 @@ Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi
+ Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
+ 
+ Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
+- - un dépôt Github/Gitlab précis
+- - une version précise (tag ou branche)
+- - un dossier précis du dépôt
+ 
+-__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
++- un dépôt Github/Gitlab précis
++- une version précise (tag ou branche)
++- un dossier précis du dépôt
++
++**Tips** : `git clone [<options>] [--] <dépôt> [<répertoire>]`
+ 
+ Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
+ Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
+ 
+-__Tips__ : `source .env`
++**Tips** : `source .env`
+ 
+ ### Build et rollback de l'application
+ 
+@@ -126,3 +128,114 @@ Il est également commun et attendu que les options suivantes soient disponibles
+  - `-V` / `--version` : donne la version sémantique du script (à cette étape du TP, vous êtes en version 1.0.0)
+ 
+ Implémentez et documentez ces options.
++
++## Solution Amirofcode
++
++Nous avons créé un script de déploiement qui automatise le processus de déploiement d'un projet à partir d'un dépôt Git. Ce script suit les meilleures pratiques DevOps et inclut des fonctionnalités pour gérer les versions et les configurations.
++
++### Fonctionnalités
++
++- Clone un dépôt Git et une branche spécifiés
++- Crée des répertoires de version horodatés
++- Crée des liens symboliques pour les fichiers partagés dans chaque version
++- Maintient un lien symbolique 'current' pointant vers la dernière version
++- Prend en charge le retour aux versions précédentes
++- Nettoie les anciennes versions, en gardant un nombre spécifié
++- Utilise des variables d'environnement pour la configuration par défaut
++- Permet des options en ligne de commande pour remplacer les paramètres par défaut
++- Exécute une commande de build spécifiée ou utilise un Makefile si présent
++- Supporte une commande de rollback personnalisée
++- Offre des options pour le mode verbeux, silencieux et sans interaction
++
++### Prérequis
++
++- Shell Bash
++- Git installé et accessible depuis la ligne de commande
++
++### Configuration
++
++1. Clonez ce dépôt sur votre machine locale.
++2. Assurez-vous que le script de déploiement est exécutable :
++   ```
++   chmod +x Deployment_script.sh
++   ```
++3. Créez un fichier `.env` dans le même répertoire que le script avec le contenu suivant (ajustez si nécessaire) :
++   ```
++   GIT_REPO="https://github.com/Nyxis/ItAK-DFS31C.git"
++   GIT_BRANCH="main"
++   GIT_SUBDIRECTORY="AD9_Linux_web"
++   KEEP_RELEASES=5
++   ```
++
++### Utilisation
++
++Déploiement de base :
++```
++./Deployment_script.sh deploy
++```
++
++Déploiement personnalisé :
++```
++./Deployment_script.sh -r https://github.com/user/repo.git -b nom_branche -d sous_repertoire deploy
++```
++
++Retour à la version précédente :
++```
++./Deployment_script.sh rollback
++```
++
++Modifier le nombre de versions à conserver :
++```
++./Deployment_script.sh -k 3 deploy
++```
++
++Déploiement avec une commande de build spécifique :
++```
++./Deployment_script.sh -B "npm run build" deploy
++```
++
++Rollback avec une commande spécifique :
++```
++./Deployment_script.sh -R "php artisan migrate:rollback" rollback
++```
++
++### Options
++
++- `-r` : Spécifie l'URL du dépôt Git
++- `-b` : Spécifie la branche Git à utiliser
++- `-d` : Spécifie le sous-répertoire du dépôt à déployer
++- `-k` : Spécifie le nombre de versions récentes à conserver
++- `-B` : Spécifie une commande de build à exécuter
++- `-R` : Spécifie une commande de rollback à exécuter
++- `-h`, `--help` : Affiche l'aide
++- `-v`, `--verbose` : Active le mode verbeux
++- `-q`, `--quiet` : Active le mode silencieux
++- `-n`, `--no-interaction` : Désactive les interactions utilisateur
++- `-V`, `--version` : Affiche la version du script
++
++### Note
++
++Ce script est conçu à des fins éducatives et peut nécessiter des modifications supplémentaires pour une utilisation en production, telles qu'une gestion améliorée des erreurs et des mesures de sécurité.
++
++## Manuel d'utilisation
++
++Un manuel d'utilisation (man page) a été créé pour ce script. Pour le consulter, utilisez la commande suivante après avoir installé le manuel :
++
++```
++man ./Deployment_script.1
++```
++
++Pour installer le manuel, copiez le fichier `Deployment_script.1` dans un répertoire de votre `MANPATH`, par exemple :
++
++```
++sudo cp Deployment_script.1 /usr/local/share/man/man1/
++sudo mandb
++```
++
++Vous pourrez ensuite accéder au manuel avec :
++
++```
++man Deployment_script
++```
++
++Le manuel contient des informations détaillées sur toutes les options disponibles, leur utilisation, et des exemples de commandes.
+diff --git a/AD9_Linux_web/project/current b/AD9_Linux_web/project/current
+new file mode 120000
+index 0000000..5fe8d6c
+--- /dev/null
++++ b/AD9_Linux_web/project/current
+@@ -0,0 +1 @@
++/Users/jd/Workspace/IT-Akademy/ItAK-DFS31C/AD9_Linux_web/project/releases/20240906120020
+\ No newline at end of file
+diff --git a/AD9_Linux_web/project/releases/20240905164201/README.md b/AD9_Linux_web/project/releases/20240905164201/README.md
+new file mode 100644
+index 0000000..8d04d9f
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164201/README.md
+@@ -0,0 +1,100 @@
++# AD9 - Consolidation Linux pour le web
++
++## Chaîner les commandes usuelles
++
++Pour les exercices suivants, consignez la commande demandée dans un fichier, joignez éventuellement des caputures d'écran.
++
++### Filtrer et compter des lignes
++
++Lister tous les fichiers dans un répertoire.
++Filtrer la liste pour ne montrer que les fichiers qui contiennent le mot "log" dans leur nom.
++Compter combien de fichiers correspondent à ce critère.
++
++_Tips_ : ```wc```
++
++### Rechercher un motif
++
++Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient les code "500", et consignez les dans un nouveau fichier .log.
++
++### Déplacer des fichiers
++
++Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez les dans un dossier ```images```.
++
++## Création d'un script de déploiement automatique
++
++Le but de l'exercice est de créer un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques Dev-Ops.
++Pour les besoins du TP, nous exécuterons le script en local.
++
++La structure de dossier à obtenir est la suivante :
++```
++| project
++| \
++|  | current > release/YYYYMMDDHHmmss
++|  |
++|  | releases
++|  | \
++|  |  | 20240905083000
++|  |  | 20240904193000
++|  |  | 20240903500000
++|  |  | .....
++|  |
++|  | shared
++|  | \
++|  |  | mysupersecretproductionconfigfile.yaml
++|  |  |
++|  |  | lib
++|  |  | \thecompanylegacynotversionnedlibrary
++|  |
++```
++
++### Création de la structure du dossier
++
++Créez votre script à la racine du dossier de votre TP, puis votre dossier projet et les sous-dossiers "shared" et "release".
++
++Commencez par afficher la date courante dans le terminal au format YYYYMMDDHHmmss.
++Utilisez ensuite cette création de date pour créer un sous-dossier dans "release" avec comme nom cette même date.
++
++Afin d'éviter de stocker de trop nombreuses instances de projet, ajoutez une commande en fin de script qui supprime le dossier release à l'exception des 5 derniers dossiers créés. Modifiez votre script pour qu'une option puisse être passée au lancement pour modifier ce nombre de releases conservées, par exemple "--keep-last-x-releases".
++__Tips__ : utilisez la fonction Shell `getopts ":ab:c"`.
++
++### Maitrise des liens
++
++Le dossier "shared" sert à publier des fichiers non versionnés dans une release, comme par exemple des fichiers de configurations pour la production (pour des mots de passe ou des clés d'API par exemple).
++
++Dans un premier temps, affichez récursivement dans le terminal tous les fichiers présents dans le dossier "shared".
++Grâce à la commande précédente, copiez chacun de ces fichiers en suivant la même structure dans le dossier de release créé à l'étape 1.
++Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared"
++__Tips__ : `ln -s chemin_fichier_source chemin_fichier_cible`
++
++Utilisez la même technique pour qu'il existe toujours un lien "current" vers la release en cours.
++Dans un premier temps, le lien se fera sur la dernière release créée.
++
++### Gestion d'erreurs
++
++Modifiez votre script pour que l'on puisse donner une commande à votre script.
++Créez les deux commandes "deploy" et "rollback", de manière à lancer votre script comme suit : `./mon_script.sh deploy`.
++
++La commande "deploy" lance la création d'une nouvelle release etc..., pendant que la commande "rollback" va permettre de retourner à la version précédente.
++Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pour qu'il pointe sur la release précédente.
++__Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
++
++Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
++
++### Installation des sources
++
++Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
++Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi votre script doit être capable de récupérer ces sources via Git.
++
++Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
++
++Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
++ - un dépôt Github/Gitlab précis
++ - une version précise (tag ou branche)
++ - un dossier précis du dépôt
++
++__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
++
++Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
++Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
++
++__Tips__ : `source .env`
+diff --git a/AD9_Linux_web/project/releases/20240905164201/clone_me/Makefile b/AD9_Linux_web/project/releases/20240905164201/clone_me/Makefile
+new file mode 100644
+index 0000000..7a30b2d
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164201/clone_me/Makefile
+@@ -0,0 +1,2 @@
++build:
++	@echo 'IT WORKS MTHRFKERS !'
+diff --git a/AD9_Linux_web/project/releases/20240905164201/config.txt b/AD9_Linux_web/project/releases/20240905164201/config.txt
+new file mode 120000
+index 0000000..1fdf439
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164201/config.txt
+@@ -0,0 +1 @@
++/Users/jd/Workspace/IT-Akademy/ItAK-DFS31C/AD9_Linux_web/project/shared/config.txt
+\ No newline at end of file
+diff --git a/AD9_Linux_web/project/releases/20240905164310/README.md b/AD9_Linux_web/project/releases/20240905164310/README.md
+new file mode 100644
+index 0000000..8d04d9f
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164310/README.md
+@@ -0,0 +1,100 @@
++# AD9 - Consolidation Linux pour le web
++
++## Chaîner les commandes usuelles
++
++Pour les exercices suivants, consignez la commande demandée dans un fichier, joignez éventuellement des caputures d'écran.
++
++### Filtrer et compter des lignes
++
++Lister tous les fichiers dans un répertoire.
++Filtrer la liste pour ne montrer que les fichiers qui contiennent le mot "log" dans leur nom.
++Compter combien de fichiers correspondent à ce critère.
++
++_Tips_ : ```wc```
++
++### Rechercher un motif
++
++Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient les code "500", et consignez les dans un nouveau fichier .log.
++
++### Déplacer des fichiers
++
++Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez les dans un dossier ```images```.
++
++## Création d'un script de déploiement automatique
++
++Le but de l'exercice est de créer un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques Dev-Ops.
++Pour les besoins du TP, nous exécuterons le script en local.
++
++La structure de dossier à obtenir est la suivante :
++```
++| project
++| \
++|  | current > release/YYYYMMDDHHmmss
++|  |
++|  | releases
++|  | \
++|  |  | 20240905083000
++|  |  | 20240904193000
++|  |  | 20240903500000
++|  |  | .....
++|  |
++|  | shared
++|  | \
++|  |  | mysupersecretproductionconfigfile.yaml
++|  |  |
++|  |  | lib
++|  |  | \thecompanylegacynotversionnedlibrary
++|  |
++```
++
++### Création de la structure du dossier
++
++Créez votre script à la racine du dossier de votre TP, puis votre dossier projet et les sous-dossiers "shared" et "release".
++
++Commencez par afficher la date courante dans le terminal au format YYYYMMDDHHmmss.
++Utilisez ensuite cette création de date pour créer un sous-dossier dans "release" avec comme nom cette même date.
++
++Afin d'éviter de stocker de trop nombreuses instances de projet, ajoutez une commande en fin de script qui supprime le dossier release à l'exception des 5 derniers dossiers créés. Modifiez votre script pour qu'une option puisse être passée au lancement pour modifier ce nombre de releases conservées, par exemple "--keep-last-x-releases".
++__Tips__ : utilisez la fonction Shell `getopts ":ab:c"`.
++
++### Maitrise des liens
++
++Le dossier "shared" sert à publier des fichiers non versionnés dans une release, comme par exemple des fichiers de configurations pour la production (pour des mots de passe ou des clés d'API par exemple).
++
++Dans un premier temps, affichez récursivement dans le terminal tous les fichiers présents dans le dossier "shared".
++Grâce à la commande précédente, copiez chacun de ces fichiers en suivant la même structure dans le dossier de release créé à l'étape 1.
++Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared"
++__Tips__ : `ln -s chemin_fichier_source chemin_fichier_cible`
++
++Utilisez la même technique pour qu'il existe toujours un lien "current" vers la release en cours.
++Dans un premier temps, le lien se fera sur la dernière release créée.
++
++### Gestion d'erreurs
++
++Modifiez votre script pour que l'on puisse donner une commande à votre script.
++Créez les deux commandes "deploy" et "rollback", de manière à lancer votre script comme suit : `./mon_script.sh deploy`.
++
++La commande "deploy" lance la création d'une nouvelle release etc..., pendant que la commande "rollback" va permettre de retourner à la version précédente.
++Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pour qu'il pointe sur la release précédente.
++__Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
++
++Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
++
++### Installation des sources
++
++Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
++Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi votre script doit être capable de récupérer ces sources via Git.
++
++Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
++
++Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
++ - un dépôt Github/Gitlab précis
++ - une version précise (tag ou branche)
++ - un dossier précis du dépôt
++
++__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
++
++Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
++Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
++
++__Tips__ : `source .env`
+diff --git a/AD9_Linux_web/project/releases/20240905164310/clone_me/Makefile b/AD9_Linux_web/project/releases/20240905164310/clone_me/Makefile
+new file mode 100644
+index 0000000..7a30b2d
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164310/clone_me/Makefile
+@@ -0,0 +1,2 @@
++build:
++	@echo 'IT WORKS MTHRFKERS !'
+diff --git a/AD9_Linux_web/project/releases/20240905164310/config.txt b/AD9_Linux_web/project/releases/20240905164310/config.txt
+new file mode 120000
+index 0000000..1fdf439
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164310/config.txt
+@@ -0,0 +1 @@
++/Users/jd/Workspace/IT-Akademy/ItAK-DFS31C/AD9_Linux_web/project/shared/config.txt
+\ No newline at end of file
+diff --git a/AD9_Linux_web/project/releases/20240905164347/README.md b/AD9_Linux_web/project/releases/20240905164347/README.md
+new file mode 100644
+index 0000000..8d04d9f
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164347/README.md
+@@ -0,0 +1,100 @@
++# AD9 - Consolidation Linux pour le web
++
++## Chaîner les commandes usuelles
++
++Pour les exercices suivants, consignez la commande demandée dans un fichier, joignez éventuellement des caputures d'écran.
++
++### Filtrer et compter des lignes
++
++Lister tous les fichiers dans un répertoire.
++Filtrer la liste pour ne montrer que les fichiers qui contiennent le mot "log" dans leur nom.
++Compter combien de fichiers correspondent à ce critère.
++
++_Tips_ : ```wc```
++
++### Rechercher un motif
++
++Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient les code "500", et consignez les dans un nouveau fichier .log.
++
++### Déplacer des fichiers
++
++Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez les dans un dossier ```images```.
++
++## Création d'un script de déploiement automatique
++
++Le but de l'exercice est de créer un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques Dev-Ops.
++Pour les besoins du TP, nous exécuterons le script en local.
++
++La structure de dossier à obtenir est la suivante :
++```
++| project
++| \
++|  | current > release/YYYYMMDDHHmmss
++|  |
++|  | releases
++|  | \
++|  |  | 20240905083000
++|  |  | 20240904193000
++|  |  | 20240903500000
++|  |  | .....
++|  |
++|  | shared
++|  | \
++|  |  | mysupersecretproductionconfigfile.yaml
++|  |  |
++|  |  | lib
++|  |  | \thecompanylegacynotversionnedlibrary
++|  |
++```
++
++### Création de la structure du dossier
++
++Créez votre script à la racine du dossier de votre TP, puis votre dossier projet et les sous-dossiers "shared" et "release".
++
++Commencez par afficher la date courante dans le terminal au format YYYYMMDDHHmmss.
++Utilisez ensuite cette création de date pour créer un sous-dossier dans "release" avec comme nom cette même date.
++
++Afin d'éviter de stocker de trop nombreuses instances de projet, ajoutez une commande en fin de script qui supprime le dossier release à l'exception des 5 derniers dossiers créés. Modifiez votre script pour qu'une option puisse être passée au lancement pour modifier ce nombre de releases conservées, par exemple "--keep-last-x-releases".
++__Tips__ : utilisez la fonction Shell `getopts ":ab:c"`.
++
++### Maitrise des liens
++
++Le dossier "shared" sert à publier des fichiers non versionnés dans une release, comme par exemple des fichiers de configurations pour la production (pour des mots de passe ou des clés d'API par exemple).
++
++Dans un premier temps, affichez récursivement dans le terminal tous les fichiers présents dans le dossier "shared".
++Grâce à la commande précédente, copiez chacun de ces fichiers en suivant la même structure dans le dossier de release créé à l'étape 1.
++Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared"
++__Tips__ : `ln -s chemin_fichier_source chemin_fichier_cible`
++
++Utilisez la même technique pour qu'il existe toujours un lien "current" vers la release en cours.
++Dans un premier temps, le lien se fera sur la dernière release créée.
++
++### Gestion d'erreurs
++
++Modifiez votre script pour que l'on puisse donner une commande à votre script.
++Créez les deux commandes "deploy" et "rollback", de manière à lancer votre script comme suit : `./mon_script.sh deploy`.
++
++La commande "deploy" lance la création d'une nouvelle release etc..., pendant que la commande "rollback" va permettre de retourner à la version précédente.
++Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pour qu'il pointe sur la release précédente.
++__Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
++
++Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
++
++### Installation des sources
++
++Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
++Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi votre script doit être capable de récupérer ces sources via Git.
++
++Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
++
++Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
++ - un dépôt Github/Gitlab précis
++ - une version précise (tag ou branche)
++ - un dossier précis du dépôt
++
++__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
++
++Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
++Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
++
++__Tips__ : `source .env`
+diff --git a/AD9_Linux_web/project/releases/20240905164347/clone_me/Makefile b/AD9_Linux_web/project/releases/20240905164347/clone_me/Makefile
+new file mode 100644
+index 0000000..7a30b2d
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164347/clone_me/Makefile
+@@ -0,0 +1,2 @@
++build:
++	@echo 'IT WORKS MTHRFKERS !'
+diff --git a/AD9_Linux_web/project/releases/20240905164347/config.txt b/AD9_Linux_web/project/releases/20240905164347/config.txt
+new file mode 120000
+index 0000000..1fdf439
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240905164347/config.txt
+@@ -0,0 +1 @@
++/Users/jd/Workspace/IT-Akademy/ItAK-DFS31C/AD9_Linux_web/project/shared/config.txt
+\ No newline at end of file
+diff --git a/AD9_Linux_web/project/releases/20240906113634/README.md b/AD9_Linux_web/project/releases/20240906113634/README.md
+new file mode 100644
+index 0000000..4da0dab
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240906113634/README.md
+@@ -0,0 +1,128 @@
++# AD9 - Consolidation Linux pour le web
++
++## Chaîner les commandes usuelles
++
++Pour les exercices suivants, consignez la commande demandée dans un fichier, joignez éventuellement des caputures d'écran.
++
++### Filtrer et compter des lignes
++
++Lister tous les fichiers dans un répertoire.
++Filtrer la liste pour ne montrer que les fichiers qui contiennent le mot "log" dans leur nom.
++Compter combien de fichiers correspondent à ce critère.
++
++_Tips_ : ```wc```
++
++### Rechercher un motif
++
++Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient les code "500", et consignez les dans un nouveau fichier .log.
++
++### Déplacer des fichiers
++
++Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez les dans un dossier ```images```.
++
++## Création d'un script de déploiement automatique
++
++Le but de l'exercice est de créer un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques Dev-Ops.
++Pour les besoins du TP, nous exécuterons le script en local.
++
++La structure de dossier à obtenir est la suivante :
++```
++| project
++| \
++|  | current > release/YYYYMMDDHHmmss
++|  |
++|  | releases
++|  | \
++|  |  | 20240905083000
++|  |  | 20240904193000
++|  |  | 20240903500000
++|  |  | .....
++|  |
++|  | shared
++|  | \
++|  |  | mysupersecretproductionconfigfile.yaml
++|  |  |
++|  |  | lib
++|  |  | \thecompanylegacynotversionnedlibrary
++|  |
++```
++
++### Création de la structure du dossier
++
++Créez votre script à la racine du dossier de votre TP, puis votre dossier projet et les sous-dossiers "shared" et "release".
++
++Commencez par afficher la date courante dans le terminal au format YYYYMMDDHHmmss.
++Utilisez ensuite cette création de date pour créer un sous-dossier dans "release" avec comme nom cette même date.
++
++Afin d'éviter de stocker de trop nombreuses instances de projet, ajoutez une commande en fin de script qui supprime le dossier release à l'exception des 5 derniers dossiers créés. Modifiez votre script pour qu'une option puisse être passée au lancement pour modifier ce nombre de releases conservées, par exemple "--keep-last-x-releases".
++__Tips__ : utilisez la fonction Shell `getopts ":ab:c"`.
++
++### Maitrise des liens
++
++Le dossier "shared" sert à publier des fichiers non versionnés dans une release, comme par exemple des fichiers de configurations pour la production (pour des mots de passe ou des clés d'API par exemple).
++
++Dans un premier temps, affichez récursivement dans le terminal tous les fichiers présents dans le dossier "shared".
++Grâce à la commande précédente, copiez chacun de ces fichiers en suivant la même structure dans le dossier de release créé à l'étape 1.
++Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared"
++__Tips__ : `ln -s chemin_fichier_source chemin_fichier_cible`
++
++Utilisez la même technique pour qu'il existe toujours un lien "current" vers la release en cours.
++Dans un premier temps, le lien se fera sur la dernière release créée.
++
++### Gestion d'erreurs
++
++Modifiez votre script pour que l'on puisse donner une commande à votre script.
++Créez les deux commandes "deploy" et "rollback", de manière à lancer votre script comme suit : `./mon_script.sh deploy`.
++
++La commande "deploy" lance la création d'une nouvelle release etc..., pendant que la commande "rollback" va permettre de retourner à la version précédente.
++Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pour qu'il pointe sur la release précédente.
++__Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
++
++Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
++
++### Installation des sources
++
++Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
++Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi votre script doit être capable de récupérer ces sources via Git.
++
++Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
++
++Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
++ - un dépôt Github/Gitlab précis
++ - une version précise (tag ou branche)
++ - un dossier précis du dépôt
++
++__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
++
++Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
++Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
++
++__Tips__ : `source .env`
++
++### Build et rollback de l'application
++
++La majorité des projets web actuels ont nécessairement besoin d'une mécanique dite de "build" pour des contraintes de performance principalement.
++On parle de "build" pour télécharger des dépendances, générer des caches, compiler des fichiers (Typescript, SCSS...), minifier des assets, importer des scripts SQL, créer des images Docker...
++
++Pour que votre script reste agnostique vis à vis d'une quelconque technologie, et donc rester portable, ajoutez une option `build` qui va référencer une ligne de commande à lancer pour déclencher le build.
++Modifiez ensuite votre script pour lancer cette commande. Si un code d'erreur est renvoyé par le build, le script de déploiement doit s'arrêter immédiatement.
++
++Si aucun build n'est défini, mais qu'un Makefile est présent à la racine du projet, proposez à l'utilisateur d'exécuter la commande `make` via un prompt (Y/n).
++
++Dans le cas de rollback d'une version, des opérations internes à l'application peuvent avoir à être effectuées (purge de certains fichiers, scripts SQL...). Créer une option `rollback` dans votre script pour lancer ces opérations.
++
++### Documentation
++
++Toute script doit être documenté.
++Créez donc une page de manuel (`man`) au format groff pour décrire les opérations disponibles, et leurs options.
++
++__Tips__ : https://doc.ubuntu-fr.org/tutoriel/groff_tuto
++
++Il est également commun et attendu que les options suivantes soient disponibles :
++ - `-h` / `--help` : affiche les commandes et options disponibles
++ - `-v` / `--verbose` : affiche des messages de debug
++ - `-q` (quiet) : désactive l'affichage de tous les messages à l'exception des prompts
++ - `-n` / `--no-interaction` : désactive les prompts en résolvant leur option par défaut (Yes dans notre cas)
++ - `-V` / `--version` : donne la version sémantique du script (à cette étape du TP, vous êtes en version 1.0.0)
++
++Implémentez et documentez ces options.
+diff --git a/AD9_Linux_web/project/releases/20240906113634/clone_me/Makefile b/AD9_Linux_web/project/releases/20240906113634/clone_me/Makefile
+new file mode 100644
+index 0000000..7a30b2d
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240906113634/clone_me/Makefile
+@@ -0,0 +1,2 @@
++build:
++	@echo 'IT WORKS MTHRFKERS !'
+diff --git a/AD9_Linux_web/project/releases/20240906113634/config.txt b/AD9_Linux_web/project/releases/20240906113634/config.txt
+new file mode 120000
+index 0000000..1fdf439
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240906113634/config.txt
+@@ -0,0 +1 @@
++/Users/jd/Workspace/IT-Akademy/ItAK-DFS31C/AD9_Linux_web/project/shared/config.txt
+\ No newline at end of file
+diff --git a/AD9_Linux_web/project/releases/20240906120020/README.md b/AD9_Linux_web/project/releases/20240906120020/README.md
+new file mode 100644
+index 0000000..4da0dab
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240906120020/README.md
+@@ -0,0 +1,128 @@
++# AD9 - Consolidation Linux pour le web
++
++## Chaîner les commandes usuelles
++
++Pour les exercices suivants, consignez la commande demandée dans un fichier, joignez éventuellement des caputures d'écran.
++
++### Filtrer et compter des lignes
++
++Lister tous les fichiers dans un répertoire.
++Filtrer la liste pour ne montrer que les fichiers qui contiennent le mot "log" dans leur nom.
++Compter combien de fichiers correspondent à ce critère.
++
++_Tips_ : ```wc```
++
++### Rechercher un motif
++
++Affichez chaque ligne dans tous les fichiers .txt d'un répertoire qui contient les code "500", et consignez les dans un nouveau fichier .log.
++
++### Déplacer des fichiers
++
++Cherchez tous les fichiers ```.jpeg``` dans une arborescence puis déplacez les dans un dossier ```images```.
++
++## Création d'un script de déploiement automatique
++
++Le but de l'exercice est de créer un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques Dev-Ops.
++Pour les besoins du TP, nous exécuterons le script en local.
++
++La structure de dossier à obtenir est la suivante :
++```
++| project
++| \
++|  | current > release/YYYYMMDDHHmmss
++|  |
++|  | releases
++|  | \
++|  |  | 20240905083000
++|  |  | 20240904193000
++|  |  | 20240903500000
++|  |  | .....
++|  |
++|  | shared
++|  | \
++|  |  | mysupersecretproductionconfigfile.yaml
++|  |  |
++|  |  | lib
++|  |  | \thecompanylegacynotversionnedlibrary
++|  |
++```
++
++### Création de la structure du dossier
++
++Créez votre script à la racine du dossier de votre TP, puis votre dossier projet et les sous-dossiers "shared" et "release".
++
++Commencez par afficher la date courante dans le terminal au format YYYYMMDDHHmmss.
++Utilisez ensuite cette création de date pour créer un sous-dossier dans "release" avec comme nom cette même date.
++
++Afin d'éviter de stocker de trop nombreuses instances de projet, ajoutez une commande en fin de script qui supprime le dossier release à l'exception des 5 derniers dossiers créés. Modifiez votre script pour qu'une option puisse être passée au lancement pour modifier ce nombre de releases conservées, par exemple "--keep-last-x-releases".
++__Tips__ : utilisez la fonction Shell `getopts ":ab:c"`.
++
++### Maitrise des liens
++
++Le dossier "shared" sert à publier des fichiers non versionnés dans une release, comme par exemple des fichiers de configurations pour la production (pour des mots de passe ou des clés d'API par exemple).
++
++Dans un premier temps, affichez récursivement dans le terminal tous les fichiers présents dans le dossier "shared".
++Grâce à la commande précédente, copiez chacun de ces fichiers en suivant la même structure dans le dossier de release créé à l'étape 1.
++Ce système bien que suffisant n'est pas satisfaisant : dupliquer des fichiers de configuration n'amène que des erreurs à terme. À la place, il est possible de créer des liens symboliques pour que seule une instance du fichier demeure dans le système. Modifiez votre script pour faire des liens vers les fichiers du dossier "shared"
++__Tips__ : `ln -s chemin_fichier_source chemin_fichier_cible`
++
++Utilisez la même technique pour qu'il existe toujours un lien "current" vers la release en cours.
++Dans un premier temps, le lien se fera sur la dernière release créée.
++
++### Gestion d'erreurs
++
++Modifiez votre script pour que l'on puisse donner une commande à votre script.
++Créez les deux commandes "deploy" et "rollback", de manière à lancer votre script comme suit : `./mon_script.sh deploy`.
++
++La commande "deploy" lance la création d'une nouvelle release etc..., pendant que la commande "rollback" va permettre de retourner à la version précédente.
++Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pour qu'il pointe sur la release précédente.
++__Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
++
++Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
++
++### Installation des sources
++
++Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
++Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi votre script doit être capable de récupérer ces sources via Git.
++
++Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
++
++Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
++ - un dépôt Github/Gitlab précis
++ - une version précise (tag ou branche)
++ - un dossier précis du dépôt
++
++__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
++
++Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
++Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
++
++__Tips__ : `source .env`
++
++### Build et rollback de l'application
++
++La majorité des projets web actuels ont nécessairement besoin d'une mécanique dite de "build" pour des contraintes de performance principalement.
++On parle de "build" pour télécharger des dépendances, générer des caches, compiler des fichiers (Typescript, SCSS...), minifier des assets, importer des scripts SQL, créer des images Docker...
++
++Pour que votre script reste agnostique vis à vis d'une quelconque technologie, et donc rester portable, ajoutez une option `build` qui va référencer une ligne de commande à lancer pour déclencher le build.
++Modifiez ensuite votre script pour lancer cette commande. Si un code d'erreur est renvoyé par le build, le script de déploiement doit s'arrêter immédiatement.
++
++Si aucun build n'est défini, mais qu'un Makefile est présent à la racine du projet, proposez à l'utilisateur d'exécuter la commande `make` via un prompt (Y/n).
++
++Dans le cas de rollback d'une version, des opérations internes à l'application peuvent avoir à être effectuées (purge de certains fichiers, scripts SQL...). Créer une option `rollback` dans votre script pour lancer ces opérations.
++
++### Documentation
++
++Toute script doit être documenté.
++Créez donc une page de manuel (`man`) au format groff pour décrire les opérations disponibles, et leurs options.
++
++__Tips__ : https://doc.ubuntu-fr.org/tutoriel/groff_tuto
++
++Il est également commun et attendu que les options suivantes soient disponibles :
++ - `-h` / `--help` : affiche les commandes et options disponibles
++ - `-v` / `--verbose` : affiche des messages de debug
++ - `-q` (quiet) : désactive l'affichage de tous les messages à l'exception des prompts
++ - `-n` / `--no-interaction` : désactive les prompts en résolvant leur option par défaut (Yes dans notre cas)
++ - `-V` / `--version` : donne la version sémantique du script (à cette étape du TP, vous êtes en version 1.0.0)
++
++Implémentez et documentez ces options.
+diff --git a/AD9_Linux_web/project/releases/20240906120020/clone_me/Makefile b/AD9_Linux_web/project/releases/20240906120020/clone_me/Makefile
+new file mode 100644
+index 0000000..7a30b2d
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240906120020/clone_me/Makefile
+@@ -0,0 +1,2 @@
++build:
++	@echo 'IT WORKS MTHRFKERS !'
+diff --git a/AD9_Linux_web/project/releases/20240906120020/config.txt b/AD9_Linux_web/project/releases/20240906120020/config.txt
+new file mode 120000
+index 0000000..1fdf439
+--- /dev/null
++++ b/AD9_Linux_web/project/releases/20240906120020/config.txt
+@@ -0,0 +1 @@
++/Users/jd/Workspace/IT-Akademy/ItAK-DFS31C/AD9_Linux_web/project/shared/config.txt
+\ No newline at end of file
+diff --git a/AD9_Linux_web/project/shared/config.txt b/AD9_Linux_web/project/shared/config.txt
+new file mode 100644
+index 0000000..6f4b0e4
+--- /dev/null
++++ b/AD9_Linux_web/project/shared/config.txt
+@@ -0,0 +1 @@
++This is a shared config file
+diff --git a/AD9_Linux_web/scriptLinux.sh b/AD9_Linux_web/scriptLinux.sh
+new file mode 100755
+index 0000000..1aef510
+--- /dev/null
++++ b/AD9_Linux_web/scriptLinux.sh
+@@ -0,0 +1,65 @@
++#!/bin/bash
++
++# Make the script executable
++chmod +x "$0"
++
++# Create a directory for our demo files and results
++DEMO_DIR="$HOME/script_demo"
++
++# Function to create a new section in the output file
++create_section() {
++    echo -e "\n\n=== $1 ===" >> "$DEMO_DIR/output.txt"
++    echo "$2" >> "$DEMO_DIR/output.txt"
++}
++
++# Clean up any existing demo directory and create a fresh one
++rm -rf "$DEMO_DIR"
++mkdir -p "$DEMO_DIR"
++
++# Initialize the output file
++echo "Script Demo Results" > "$DEMO_DIR/output.txt"
++echo "===================" >> "$DEMO_DIR/output.txt"
++
++# Part 1: Filtering and counting lines
++create_section "Part 1: Filtering and counting lines" "This section demonstrates listing files, filtering for 'log', and counting the results."
++
++mkdir -p "$DEMO_DIR/part1"
++touch "$DEMO_DIR/part1/access.log" "$DEMO_DIR/part1/error.log" "$DEMO_DIR/part1/system.log" "$DEMO_DIR/part1/random.txt"
++
++echo "Listing all files:" >> "$DEMO_DIR/output.txt"
++ls "$DEMO_DIR/part1" >> "$DEMO_DIR/output.txt"
++
++echo -e "\nFiles containing 'log':" >> "$DEMO_DIR/output.txt"
++ls "$DEMO_DIR/part1" | grep "log" >> "$DEMO_DIR/output.txt"
++
++echo -e "\nCount of files containing 'log':" >> "$DEMO_DIR/output.txt"
++ls "$DEMO_DIR/part1" | grep "log" | wc -l >> "$DEMO_DIR/output.txt"
++
++# Part 2: Searching for a pattern
++create_section "Part 2: Searching for a pattern" "This section demonstrates searching for '500' in .txt files and logging the results."
++
++mkdir -p "$DEMO_DIR/part2"
++echo "Error 500: Internal Server Error" > "$DEMO_DIR/part2/errors.txt"
++echo "Everything is fine" > "$DEMO_DIR/part2/status.txt"
++echo "Another 500 error occurred" >> "$DEMO_DIR/part2/errors.txt"
++
++echo "Searching for '500' in .txt files:" >> "$DEMO_DIR/output.txt"
++grep -n "500" "$DEMO_DIR/part2"/*.txt >> "$DEMO_DIR/part2/results.log"
++cat "$DEMO_DIR/part2/results.log" >> "$DEMO_DIR/output.txt"
++
++# Part 3: Moving files
++create_section "Part 3: Moving files" "This section demonstrates finding .jpeg files and moving them to an 'images' folder."
++
++mkdir -p "$DEMO_DIR/part3/subdir"
++touch "$DEMO_DIR/part3/photo1.jpeg" "$DEMO_DIR/part3/document.txt" "$DEMO_DIR/part3/subdir/photo2.jpeg"
++
++echo "Initial directory structure:" >> "$DEMO_DIR/output.txt"
++find "$DEMO_DIR/part3" -type f >> "$DEMO_DIR/output.txt"
++
++mkdir -p "$DEMO_DIR/part3/images"
++find "$DEMO_DIR/part3" -name "*.jpeg" -exec mv {} "$DEMO_DIR/part3/images" \;
++
++echo -e "\nDirectory structure after moving .jpeg files:" >> "$DEMO_DIR/output.txt"
++find "$DEMO_DIR/part3" -type f >> "$DEMO_DIR/output.txt"
++
++echo -e "\nScript execution complete. Results are available in $DEMO_DIR/output.txt"
