@@ -1,0 +1,56 @@
+# Ignore les fichiers et dossiers générés par Symfony
+/var/
+/vendor/
+/public/bundles/
+/public/build/
+
+# Ignore les fichiers de configuration locaux
+/.env
+/.env.local
+/.env.*.local
+/.env.test
+/.env.test.local
+
+# Ignore les fichiers de cache et de logs
+/var/cache/
+/var/log/
+/var/sessions/
+
+# Ignore les fichiers de base de données
+/var/data.db
+*.sqlite
+
+# Ignore les fichiers de configuration et de déploiement spécifiques
+/deploy/
+/docker-compose.yml
+/Dockerfile
+
+# Ignore les fichiers spécifiques à l'IDE
+/.idea/
+/.vscode/
+/nbproject/
+
+# Ignore les fichiers de tests générés
+/tests/coverage/
+
+# Ignore les fichiers générés par Composer
+/composer.lock
+
+# Ignore les fichiers de migration générés
+/migrations/*.php
+
+# Ignore les fichiers de build (npm/yarn)
+/node_modules/
+/build/
+
+# Ignore les fichiers temporaires
+*.log
+*.cache
+*.tmp
+*.swp
+*~
+
+# Ignore les fichiers spécifiques à l'OS
+.DS_Store
+Thumbs.db
+

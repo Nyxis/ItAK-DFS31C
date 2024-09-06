@@ -1,0 +1,85 @@
+.TH deploy.sh 1 "Septembre 2024" "Version 1.0.0" "Page de manuel du script deploy.sh"
+.SH NAME
+deploy.sh \- Script pour déployer et gérer les releases de projet.
+.SH SYNOPSIS
+.B deploy.sh
+[\-h] [\-\-help] [\-\-verbose] [\-\-quiet] [\-\-no\-interaction] [\-\-version] [deploy|rollback]
+.SH DESCRIPTION
+Ce script permet de déployer et de gérer les versions de releases d'un projet en ligne de commande.
+Il propose également des options pour personnaliser le nombre de versions conservées, le dépôt à cloner, et la gestion du build.
+
+.SH OPTIONS
+.TP
+.B \-h, \-\-help
+Affiche l'aide détaillée du script.
+.TP
+.B \-v, \-\-verbose
+Affiche des messages de debug détaillés.
+.TP
+.B \-q
+Mode silencieux, n'affiche que les messages essentiels.
+.TP
+.B \-n, \-\-no\-interaction
+Désactive les prompts interactifs et sélectionne les options par défaut.
+.TP
+.B \-V, \-\-version
+Affiche la version actuelle du script.
+.TP
+.B \-k <nombre>
+Spécifie le nombre de releases à conserver (par défaut : 5).
+.TP
+.B \-r <url>
+Spécifie l'URL du dépôt Git à cloner.
+.TP
+.B \-b <branche>
+Spécifie la branche ou le tag Git à cloner.
+.TP
+.B \-d <dossier>
+Spécifie le répertoire cible où le projet sera déployé.
+
+.SH COMMANDES
+.TP
+.B deploy
+Lance la procédure de déploiement du projet. Cette commande va :
+.RS
+\-\- Cloner le dépôt spécifié,
+.br
+\-\- Supprimer les anciens releases, en ne gardant que les plus récents,
+.br
+\-\- Exécuter la commande de build si elle est spécifiée ou utiliser un `Makefile` s'il est présent.
+.RE
+.TP
+.B rollback
+Restaure une version précédente du projet, remet à jour le lien symbolique `current`, et exécute les éventuelles opérations internes associées (exemple : purge de fichiers).
+
+.SH EXAMPLES
+.TP
+.B Deploy :
+    ./deploy.sh deploy --build-command "npm run build"
+    Lance le déploiement et exécute le build avec la commande `npm run build`.
+.TP
+.B Rollback :
+    ./deploy.sh rollback
+    Restaure la version précédente du projet.
+.TP
+.B Aide :
+    ./deploy.sh --help
+    Affiche l'aide détaillée.
+
+.SH FILES
+.TP
+.B .env
+Le fichier `.env` doit contenir les variables d'environnement suivantes :
+.RE
+.RE
+\-\- REPO_URL : URL du dépôt Git.
+.br
+\-\- BRANCH_OR_TAG : Branche ou tag du dépôt à cloner.
+.br
+\-\- TARGET_DIR : Répertoire de destination pour les releases.
+.br
+\-\- CLONE_DIR : Sous-dossier du dépôt à cloner.
+.RE
+.SH AUTHOR
+ Pierre
+
