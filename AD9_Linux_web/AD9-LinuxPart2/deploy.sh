@@ -17,6 +17,8 @@ fi
 
 # Nombre de releases à conserver (par défaut : 5)
 KEEP=5
+BUILD_COMMAND=""
+NO_INTERACTION=0
 
 # Vérifier si une commande (deploy ou rollback) est donnée
 if [ -z "$1" ]; then
@@ -27,15 +29,54 @@ fi
 COMMAND=$1
 
 # Gestion des options pour personnaliser le nombre de releases à conserver, le dépôt, la branche/tag, et le répertoire de déploiement
-while getopts ":k:r:b:d:" option; do
+while getopts ":k:r:b:d:n:" option; do
     case $option in
         k) KEEP=$OPTARG;;  # Nombre de releases à garder
         r) REPO_URL=$OPTARG;;  # Dépôt Git à cloner
         b) BRANCH_OR_TAG=$OPTARG;;  # Branche ou tag à cloner
         d) TARGET_DIR=$OPTARG;;  # Répertoire cible de déploiement
+        n) NO_INTERACTION=1;;  # Pas de prompt d'interaction
         *) echo "Option invalide"; exit 1;;
     esac
 done
+
+# Fonction pour exécuter le build
+function run_build {
+    if [ -n "$BUILD_COMMAND" ]; then
+        echo "Exécution de la commande de build : $BUILD_COMMAND"
+        eval "$BUILD_COMMAND"
+        if [ $? -ne 0 ]; then
+            echo "Erreur lors du build, arrêt du déploiement."
+            exit 1
+        fi
+    elif [ -f "Makefile" ]; then
+        # Si aucun build n'est défini mais qu'un Makefile est présent
+        if [ "$NO_INTERACTION" -eq 1 ]; then
+            RESPONSE="y"
+        else
+            read -p "Un Makefile est détecté. Voulez-vous exécuter 'make' ? (Y/n) " RESPONSE
+        fi
+
+        if [[ "$RESPONSE" == "y" || "$RESPONSE" == "Y" || "$RESPONSE" == "" ]]; then
+            echo "Exécution de la commande 'make'"
+            make
+            if [ $? -ne 0 ]; then
+                echo "Erreur lors de l'exécution de 'make', arrêt du déploiement."
+                exit 1
+            fi
+        fi
+    else
+        echo "Aucune commande de build définie, et aucun Makefile trouvé."
+    fi
+}
+
+# Fonction pour exécuter des opérations spécifiques lors du rollback
+function run_rollback_operations {
+    echo "Exécution des opérations internes de rollback..."
+    # Exemple : Purge de fichiers, scripts SQL, etc.
+    # Ajouter les opérations spécifiques ici
+    # rm -rf tmp/cache/  # Exemple de purge de fichiers cache
+}
 
 if [ "$COMMAND" == "deploy" ]; then
     # Partie déploiement
@@ -67,6 +108,10 @@ if [ "$COMMAND" == "deploy" ]; then
     # Suppression manuelle des fichiers non désirés (sauf le sous-dossier)
     find . -maxdepth 1 ! -name "$CLONE_DIR" -type f -exec rm -f {} \;
     find . -maxdepth 1 ! -name "$CLONE_DIR" -type d -exec rm -rf {} \;
+    
+
+    # Exécuter le build après avoir récupéré les fichiers
+    run_build
 
     # Revenir au répertoire initial
     cd -
@@ -118,6 +163,10 @@ elif [ "$COMMAND" == "rollback" ]; then
     # Mettre à jour le lien 'current' pour pointer vers la release précédente
     ln -sfn "$PREV_RELEASE" project/current
     echo "Le lien 'current' a été mis à jour pour pointer vers : $PREV_RELEASE"
+
+    # Exécuter les opérations internes spécifiques du rollback
+    run_rollback_operations
+
 else
     echo "Commande inconnue : $COMMAND. Utilisez 'deploy' ou 'rollback'."
     exit 1
