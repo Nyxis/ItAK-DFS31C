@@ -172,3 +172,24 @@ Modifier le nombre de versions à conserver :
 ### Note
 
 Ce script est conçu à des fins éducatives et peut nécessiter des modifications supplémentaires pour une utilisation en production, telles qu'une gestion améliorée des erreurs et des mesures de sécurité.
+
+## Manuel d'utilisation
+
+Un manuel d'utilisation (man page) a été créé pour ce script. Pour le consulter, utilisez la commande suivante après avoir installé le manuel :
+
+```
+man ./Deployment_script.1
+```
+
+Pour installer le manuel, copiez le fichier `Deployment_script.1` dans un répertoire de votre `MANPATH`, par exemple :
+
+```
+sudo cp Deployment_script.1 /usr/local/share/man/man1/
+sudo mandb
+```
+
+Vous pourrez ensuite accéder au manuel avec :
+
+```
+man Deployment_script
+```
