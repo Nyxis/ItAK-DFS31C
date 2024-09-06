@@ -5,6 +5,7 @@ source ./model/environment.sh
 source ./model/project_structure.sh
 source ./model/git_operations.sh
 source ./model/release_management.sh
+source ./model/man_page.sh
 
 # View: Gestion de l'affichage
 source ./view/output.sh
