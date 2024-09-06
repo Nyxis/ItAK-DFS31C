@@ -1,0 +1,64 @@
+.TH DEPLOYMENT_SCRIPT 1 "September 2024" "Version 1.0" "User Commands"
+.SH NAME
+Deployment_script \- Automated deployment script for Git-based projects
+.SH SYNOPSIS
+.B Deployment_script.sh
+[\fB\-k\fR \fInum_releases\fR]
+[\fB\-r\fR \fIrepo_url\fR]
+[\fB\-b\fR \fIbranch\fR]
+[\fB\-d\fR \fIsubdirectory\fR]
+{deploy|rollback}
+.SH DESCRIPTION
+.B Deployment_script
+is a Bash script that automates the deployment process of a Git-based project. It can clone a specified repository, create timestamped release directories, manage symlinks, and perform rollbacks.
+.SH OPTIONS
+.TP
+.BR \-k " " \fInum_releases\fR
+Specify the number of recent releases to keep (default: 5)
+.TP
+.BR \-r " " \fIrepo_url\fR
+Specify the Git repository URL
+.TP
+.BR \-b " " \fIbranch\fR
+Specify the Git branch to use
+.TP
+.BR \-d " " \fIsubdirectory\fR
+Specify the subdirectory in the repository to deploy
+.SH COMMANDS
+.TP
+.B deploy
+Create a new release
+.TP
+.B rollback
+Revert to the previous release
+.SH ENVIRONMENT
+.TP
+.B GIT_REPO
+Default Git repository URL
+.TP
+.B GIT_BRANCH
+Default Git branch
+.TP
+.B GIT_SUBDIRECTORY
+Default subdirectory to deploy
+.TP
+.B KEEP_RELEASES
+Default number of releases to keep
+.SH FILES
+.TP
+.I .env
+Configuration file for default environment variables
+.SH EXAMPLES
+.TP
+Deploy using default settings:
+.B ./Deployment_script.sh deploy
+.TP
+Deploy with custom repository and branch:
+.B ./Deployment_script.sh -r https://github.com/user/repo.git -b develop deploy
+.TP
+Rollback to previous release:
+.B ./Deployment_script.sh rollback
+.SH AUTHORS
+Written by [Your Name].
+.SH SEE ALSO
+git(1), bash(1)
