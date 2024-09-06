@@ -1,0 +1,94 @@
+.TH DEPLOY 1 "Septembre 2024" "Version 1.0.0" "Manuel utilisateur"
+.SH NOM
+deploy \- Script de déploiement et de gestion de versions
+.SH SYNOPSIS
+.B deploy
+[\fIOPTIONS\fR] {\fIdeploy\fR|\fIrollback\fR}
+.SH DESCRIPTION
+.B deploy
+est un script de déploiement qui permet de gérer les versions d'une application, de déployer de nouvelles versions et d'effectuer des rollbacks.
+.SH OPTIONS
+.TP
+.B \-n \fInombre\fR
+Spécifie le nombre de versions à conserver (défaut: 5)
+.TP
+.B \-r \fIurl\fR
+URL du dépôt Git à cloner
+.TP
+.B \-b \fIbranche\fR
+Branche Git à utiliser (défaut: main)
+.TP
+.B \-f \fIdossier\fR
+Dossier spécifique du dépôt à cloner
+.TP
+.B \-s \fIsteps\fR
+Nombre d'étapes pour le rollback (défaut: 1)
+.TP
+.B \-c \fIcommande\fR
+Commande de build personnalisée
+.TP
+.B \-k \fIcommande\fR
+Commande de rollback personnalisée
+.TP
+.B \-m \fIcible\fR
+Cible Makefile à exécuter
+.TP
+.B \-p \fIchemin\fR
+Chemin vers le Makefile
+.TP
+.B \-h
+Affiche l'aide
+.TP
+.B \-v
+Active le mode verbose
+.TP
+.B \-q
+Active le mode silencieux
+.TP
+.B \-n
+Active le mode sans interaction
+.TP
+.B \-V
+Affiche la version du script
+.SH COMMANDES
+.TP
+.B deploy
+Déploie une nouvelle version de l'application
+.TP
+.B rollback
+Revient à une version précédente de l'application
+.SH EXEMPLES
+.TP
+Déployer une nouvelle version:
+.B deploy \-r https://github.com/user/repo.git deploy
+.TP
+Effectuer un rollback:
+.B deploy \-s 2 rollback
+.SH ENVIRONNEMENT
+Le script utilise les variables d'environnement suivantes si elles sont définies:
+.TP
+.B PROJECT_ROOT
+Répertoire racine du projet (défaut: répertoire courant)
+.TP
+.B KEEP_VERSIONS
+Nombre de versions à conserver (peut être remplacé par l'option \-n)
+.TP
+.B GIT_REPO
+URL du dépôt Git (peut être remplacé par l'option \-r)
+.TP
+.B GIT_BRANCH
+Branche Git à utiliser (peut être remplacé par l'option \-b)
+.TP
+.B GIT_FOLDER
+Dossier spécifique du dépôt à cloner (peut être remplacé par l'option \-f)
+.SH FICHIERS
+.TP
+.I .env
+Fichier de configuration contenant les variables d'environnement
+.SH AUTEUR
+Écrit par [Votre nom ou celui de votre équipe]
+.SH BUGS
+Signalez les bugs à [votre adresse email ou URL du tracker de bugs]
+.SH COPYRIGHT
+Copyright © 2024 [Votre nom ou celui de votre organisation]. Licence GPLv3+: GNU GPL version 3 ou ultérieure <https://gnu.org/licenses/gpl.html>.
+C'est un logiciel libre : vous êtes libre de le modifier et de le redistribuer. Il n'y a AUCUNE GARANTIE, dans la mesure permise par la loi.

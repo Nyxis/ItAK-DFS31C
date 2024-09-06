@@ -1,0 +1,20 @@
+[
+    {
+        "id": "37",
+        "designation": "Example Product",
+        "univers": "Example Universe",
+        "price": 100
+    },
+    {
+        "id": "38",
+        "designation": "Example Product",
+        "univers": "Example Universe",
+        "price": 100
+    },
+    {
+        "id": "39",
+        "designation": "Example Product",
+        "univers": "Example Universe",
+        "price": 100
+    }
+]
