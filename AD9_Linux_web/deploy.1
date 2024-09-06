@@ -1,0 +1,32 @@
+.TH DEPLOY 6 "September 2024" "Version 1.0" "Manual for deploy.sh"
+.SH NAME
+deploy \- Deployment and version management script
+.SH SYNOPSIS
+.B deploy
+.RB [ \-d | \-r | \-b ]
+.SH DESCRIPTION
+.B deploy
+is a script for deploying, rolling back, and building project versions.
+
+.SH COMMANDS
+.TP
+.B deploy
+Deploys a new release.
+.TP
+.B \-d
+Alias for deploy.
+.TP
+.B rollback
+Rolls back to the previous release.
+.TP
+.B \-r
+Alias for rollback.
+.TP
+.B build
+Builds the last release.
+.TP
+.B \-b
+Alias for build.
+
+.SH AUTHOR
+Written by [Mohamed MARZOUGUI].
