@@ -2,16 +2,25 @@
 
 set -e  # Arrête le script si une commande échoue
 
+# Chargement des variables d'environnement
+if [ -f .env ]; then
+    source .env
+fi
+
 # Variables globales
-PROJECT_ROOT=$(realpath "./project")
+PROJECT_ROOT=${PROJECT_ROOT:-$(realpath "./project")}
 RELEASES_DIR="${PROJECT_ROOT}/releases"
 SHARED_DIR="${PROJECT_ROOT}/shared"
 CURRENT_LINK="${PROJECT_ROOT}/current"
-DEFAULT_KEEP_RELEASES=5
+DEFAULT_KEEP_RELEASES=${DEFAULT_KEEP_RELEASES:-5}
+GIT_REPO=${GIT_REPO:-"https://github.com/example/clone_me.git"}
+GIT_BRANCH=${GIT_BRANCH:-"main"}
+GIT_FOLDER=${GIT_FOLDER:-""}
 
 # Fonction pour vérifier les prérequis
 check_prerequisites() {
     command -v realpath >/dev/null 2>&1 || { echo "realpath est requis mais n'est pas installé. Abandon." >&2; exit 1; }
+    command -v git >/dev/null 2>&1 || { echo "git est requis mais n'est pas installé. Abandon." >&2; exit 1; }
 }
 
 # Fonction pour obtenir la date au format YYYYMMDDHHmmss
@@ -30,7 +39,10 @@ create_project_structure() {
 create_new_release() {
     local release_date=$(get_current_date)
     local release_dir="${RELEASES_DIR}/${release_date}"
-    mkdir -p "${release_dir}" || { echo "Erreur lors de la création du répertoire de release" >&2; return 1; }
+    git clone --branch "$GIT_BRANCH" "$GIT_REPO" "$release_dir" || { echo "Erreur lors du clonage du dépôt Git" >&2; return 1; }
+    if [ -n "$GIT_FOLDER" ]; then
+        mv "$release_dir/$GIT_FOLDER"/* "$release_dir" && rm -rf "$release_dir/$GIT_FOLDER"
+    fi
     echo "Nouvelle release créée : ${release_dir}"
     return 0
 }
@@ -109,10 +121,19 @@ main() {
     check_prerequisites
 
     # Traitement des options
-    while getopts ":k:" opt; do
+    while getopts ":k:r:b:f:" opt; do
         case ${opt} in
             k )
                 keep_releases=$OPTARG
+                ;;
+            r )
+                GIT_REPO=$OPTARG
+                ;;
+            b )
+                GIT_BRANCH=$OPTARG
+                ;;
+            f )
+                GIT_FOLDER=$OPTARG
                 ;;
             \? )
                 echo "Option invalide : -$OPTARG" >&2
@@ -137,7 +158,7 @@ main() {
             perform_rollback
             ;;
         *)
-            echo "Usage: $0 [-k nombre_de_releases] {deploy|rollback}" >&2
+            echo "Usage: $0 [-k nombre_de_releases] [-r repo_git] [-b branche_git] [-f dossier_git] {deploy|rollback}" >&2
             exit 1
             ;;
     esac
