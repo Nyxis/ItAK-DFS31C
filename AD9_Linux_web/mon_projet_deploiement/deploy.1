@@ -1,0 +1,47 @@
+.TH DEPLOY 1 "Septembre 2024" "Version 1.0.0" "Manuel utilisateur"
+.SH NOM
+deploy \- Script de déploiement automatique
+.SH SYNOPSIS
+.B deploy
+[\fIOPTIONS\fR] {\fIdeploy\fR|\fIrollback\fR}
+.SH DESCRIPTION
+.B deploy
+est un script shell qui automatise le déploiement et le rollback d'un projet.
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Affiche l'aide et quitte.
+.TP
+.BR \-v ", " \-\-verbose
+Active le mode verbeux.
+.TP
+.BR \-q ", " \-\-quiet
+Désactive tous les messages sauf les prompts.
+.TP
+.BR \-n ", " \-\-no\-interaction
+Désactive les prompts interactifs.
+.TP
+.BR \-V ", " \-\-version
+Affiche la version du script et quitte.
+.TP
+.BR \-k ", " \-\-keep\-releases =\fINOMBRE\fR
+Spécifie le nombre de releases à conserver (par défaut : 5).
+.TP
+.BR \-r ", " \-\-repo =\fIURL\fR
+Spécifie l'URL du dépôt Git à cloner.
+.TP
+.BR \-b ", " \-\-branch =\fINOM\fR
+Spécifie la branche ou le tag Git à utiliser.
+.TP
+.BR \-f ", " \-\-folder =\fINOM\fR
+Spécifie le dossier du dépôt à déployer.
+.TP
+.BR \-\-build\-command =\fICOMMANDE\fR
+Spécifie la commande de build à exécuter.
+.TP
+.BR \-\-rollback\-command =\fICOMMANDE\fR
+Spécifie la commande à exécuter lors d'un rollback.
+.SH AUTEUR
+Votre nom (votre@email.com)
+.SH VOIR AUSSI
+git(1), make(1)
