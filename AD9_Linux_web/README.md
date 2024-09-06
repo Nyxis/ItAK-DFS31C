@@ -79,3 +79,50 @@ Ajoutez cette fonctionnalité à votre script en modifiant le lien "current" pou
 __Tips__ : `head` et `tails` permettent d'obtenir des éléments précis dans une liste.
 
 Trouvez un moyen pour que plusieurs rollbacks successifs remontent toujours d'une version en arrière.
+
+### Installation des sources
+
+Déployer une application consiste toujours à installer une version du projet sur un serveur accessible aux clients finaux.
+Ces versions sont quasi systématiquement hébergées sur un serveur Git, aussi votre script doit être capable de récupérer ces sources via Git.
+
+Modifiez votre script pour qu'il teste si la commande `git` est accessible à l'utilisateur courant. Si oui, cloner le dossier `clone_me` de ce dépôt en tant que dossier de release.
+
+Ensuite, pour que votre script soit portable, ajoutez des options pour pouvoir déployer :
+ - un dépôt Github/Gitlab précis
+ - une version précise (tag ou branche)
+ - un dossier précis du dépôt
+
+__Tips__ : `git clone [<options>] [--] <dépôt> [<répertoire>]`
+
+Ces variables étant dépendantes de l'installation, il peut être commode d'utiliser des variables d'environnement à la place d'arguments dans le script (pour les valeurs par défaut).
+Créez un fichier `.env` à la racine de l'installation pour paramétrer les variables par défaut.
+
+__Tips__ : `source .env`
+
+### Build et rollback de l'application
+
+La majorité des projets web actuels ont nécessairement besoin d'une mécanique dite de "build" pour des contraintes de performance principalement.
+On parle de "build" pour télécharger des dépendances, générer des caches, compiler des fichiers (Typescript, SCSS...), minifier des assets, importer des scripts SQL, créer des images Docker...
+
+Pour que votre script reste agnostique vis à vis d'une quelconque technologie, et donc rester portable, ajoutez une option `build` qui va référencer une ligne de commande à lancer pour déclencher le build.
+Modifiez ensuite votre script pour lancer cette commande. Si un code d'erreur est renvoyé par le build, le script de déploiement doit s'arrêter immédiatement.
+
+Si aucun build n'est défini, mais qu'un Makefile est présent à la racine du projet, proposez à l'utilisateur d'exécuter la commande `make` via un prompt (Y/n).
+
+Dans le cas de rollback d'une version, des opérations internes à l'application peuvent avoir à être effectuées (purge de certains fichiers, scripts SQL...). Créer une option `rollback` dans votre script pour lancer ces opérations.
+
+### Documentation
+
+Toute script doit être documenté.
+Créez donc une page de manuel (`man`) au format groff pour décrire les opérations disponibles, et leurs options.
+
+__Tips__ : https://doc.ubuntu-fr.org/tutoriel/groff_tuto
+
+Il est également commun et attendu que les options suivantes soient disponibles :
+ - `-h` / `--help` : affiche les commandes et options disponibles
+ - `-v` / `--verbose` : affiche des messages de debug
+ - `-q` (quiet) : désactive l'affichage de tous les messages à l'exception des prompts
+ - `-n` / `--no-interaction` : désactive les prompts en résolvant leur option par défaut (Yes dans notre cas)
+ - `-V` / `--version` : donne la version sémantique du script (à cette étape du TP, vous êtes en version 1.0.0)
+
+Implémentez et documentez ces options.
