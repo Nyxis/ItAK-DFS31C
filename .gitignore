@@ -1,0 +1,67 @@
+# Dépendances
+/node_modules
+/.pnp
+.pnp.js
+
+# Tests
+/coverage
+
+# Builds de production
+/build
+/dist
+
+# Fichiers d'environnement
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers d'éditeurs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Systèmes d'exploitation
+.DS_Store
+Thumbs.db
+
+# Fichiers temporaires
+*.log
+*.tmp
+*.temp
+
+# Cache
+.cache/
+.next/
+
+# Fichiers de build
+*.compiled.js
+*.compiled.js.map
+
+# Notes personnelles
+TODO.md
+NOTES.md
+
+# Fichiers de configuration pouvant contenir des secrets
+config.js
+secrets.json
+
+# Sauvegardes
+*.bak
+*.backup
+
+# Artefacts de build
+*.tsbuildinfo
+
+# Répertoires spécifiques à certains outils
+.vercel
+.netlify
+
+# Ajoutez ici d'autres fichiers ou dossiers spécifiques à votre projet
