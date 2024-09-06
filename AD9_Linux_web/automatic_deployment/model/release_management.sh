@@ -53,3 +53,25 @@ get_previous_release() {
     local current_release=$(readlink "${CURRENT_LINK}")
     ls -t ${RELEASES_DIR} | grep -v "$(basename "${current_release}")" | head -n1
 }
+
+run_makefile() {
+    local release_dir="${RELEASES_DIR}/$(ls -t ${RELEASES_DIR} | head -n1)"
+    local makefile_path=""
+
+    # Recherche récursive du Makefile
+    makefile_path=$(find "$release_dir" -type f -name "Makefile" -print -quit)
+
+    if [ -n "$makefile_path" ]; then
+        local makefile_dir=$(dirname "$makefile_path")
+        cd "$makefile_dir"
+        if grep -q "build:" Makefile; then
+            print_info "Exécution de 'make build' dans $(pwd)"
+            make build
+        else
+            print_info "Le Makefile trouvé dans $makefile_dir ne contient pas de cible 'build'."
+        fi
+        cd - > /dev/null
+    else
+        print_info "Aucun Makefile trouvé dans la release."
+    fi
+}

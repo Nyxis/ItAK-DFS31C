@@ -18,5 +18,7 @@ deploy_controller() {
     cleanup_old_releases "$keep_releases" || { print_error "Échec du nettoyage des anciennes releases"; return 1; }
     print_success "Anciennes releases nettoyées"
     
+    run_makefile
+    
     print_success "Déploiement terminé avec succès"
 }
