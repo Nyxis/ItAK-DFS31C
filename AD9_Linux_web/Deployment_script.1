@@ -1,29 +1,46 @@
-.TH DEPLOYMENT_SCRIPT 1 "September 2024" "Version 1.0" "User Commands"
+.TH DEPLOYMENT_SCRIPT 1 "September 2024" "Version 1.0.0" "User Commands"
 .SH NAME
 Deployment_script \- Automated deployment script for Git-based projects
 .SH SYNOPSIS
 .B Deployment_script.sh
-[\fB\-k\fR \fInum_releases\fR]
-[\fB\-r\fR \fIrepo_url\fR]
-[\fB\-b\fR \fIbranch\fR]
-[\fB\-d\fR \fIsubdirectory\fR]
-{deploy|rollback}
+[\fIOPTIONS\fR] {deploy|rollback}
 .SH DESCRIPTION
 .B Deployment_script
-is a Bash script that automates the deployment process of a Git-based project. It can clone a specified repository, create timestamped release directories, manage symlinks, and perform rollbacks.
+is a Bash script that automates the deployment process of a Git-based project. It can clone a specified repository, create timestamped release directories, manage symlinks, perform builds, and handle rollbacks.
 .SH OPTIONS
 .TP
-.BR \-k " " \fInum_releases\fR
+.BR \-k " " \fINUM\fR
 Specify the number of recent releases to keep (default: 5)
 .TP
-.BR \-r " " \fIrepo_url\fR
+.BR \-r " " \fIURL\fR
 Specify the Git repository URL
 .TP
-.BR \-b " " \fIbranch\fR
+.BR \-b " " \fIBRANCH\fR
 Specify the Git branch to use
 .TP
-.BR \-d " " \fIsubdirectory\fR
+.BR \-d " " \fIDIR\fR
 Specify the subdirectory in the repository to deploy
+.TP
+.BR \-B " " \fICMD\fR
+Specify a build command to execute during deployment
+.TP
+.BR \-R " " \fICMD\fR
+Specify a rollback command to execute during rollback
+.TP
+.BR \-h ", " \-\-help
+Display help message and exit
+.TP
+.BR \-v ", " \-\-verbose
+Display debug messages
+.TP
+.BR \-q ", " \-\-quiet
+Disable all output except prompts
+.TP
+.BR \-n ", " \-\-no\-interaction
+Disable prompts (use default answers)
+.TP
+.BR \-V ", " \-\-version
+Display script version and exit
 .SH COMMANDS
 .TP
 .B deploy
@@ -48,6 +65,9 @@ Default number of releases to keep
 .TP
 .I .env
 Configuration file for default environment variables
+.TP
+.I Makefile
+If present in the project root, can be used for building (with user confirmation)
 .SH EXAMPLES
 .TP
 Deploy using default settings:
@@ -56,9 +76,28 @@ Deploy using default settings:
 Deploy with custom repository and branch:
 .B ./Deployment_script.sh -r https://github.com/user/repo.git -b develop deploy
 .TP
+Deploy with a specific build command:
+.B ./Deployment_script.sh -B "npm run build" deploy
+.TP
 Rollback to previous release:
 .B ./Deployment_script.sh rollback
-.SH AUTHORS
+.TP
+Rollback with a specific rollback command:
+.B ./Deployment_script.sh -R "php artisan migrate:rollback" rollback
+.TP
+Deploy in verbose mode:
+.B ./Deployment_script.sh --verbose deploy
+.TP
+Deploy without user interaction:
+.B ./Deployment_script.sh --no-interaction deploy
+.SH EXIT STATUS
+The script exits 0 on success, and >0 if an error occurs.
+.SH AUTHOR
 Written by [Your Name].
+.SH REPORTING BUGS
+Report bugs to: [Your Email or Bug Reporting URL]
+.SH COPYRIGHT
+Copyright © 2024 [Your Name or Organization]. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
 .SH SEE ALSO
-git(1), bash(1)
+git(1), make(1), bash(1)
