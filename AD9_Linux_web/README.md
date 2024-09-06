@@ -101,99 +101,6 @@ Créez un fichier `.env` à la racine de l'installation pour paramétrer les var
 
 **Tips** : `source .env`
 
-## Solution Amirofcode
-
-Nous avons créé un script de déploiement qui automatise le processus de déploiement d'un projet à partir d'un dépôt Git. Ce script suit les meilleures pratiques DevOps et inclut des fonctionnalités pour gérer les versions et les configurations.
-
-### Fonctionnalités
-
-- Clone un dépôt Git et une branche spécifiés
-- Crée des répertoires de version horodatés
-- Crée des liens symboliques pour les fichiers partagés dans chaque version
-- Maintient un lien symbolique 'current' pointant vers la dernière version
-- Prend en charge le retour aux versions précédentes
-- Nettoie les anciennes versions, en gardant un nombre spécifié
-- Utilise des variables d'environnement pour la configuration par défaut
-- Permet des options en ligne de commande pour remplacer les paramètres par défaut
-
-### Prérequis
-
-- Shell Bash
-- Git installé et accessible depuis la ligne de commande
-
-### Configuration
-
-1. Clonez ce dépôt sur votre machine locale.
-2. Assurez-vous que le script de déploiement est exécutable :
-   ```
-   chmod +x Deployment_script.sh
-   ```
-3. Créez un fichier `.env` dans le même répertoire que le script avec le contenu suivant (ajustez si nécessaire) :
-   ```
-   GIT_REPO="https://github.com/Nyxis/ItAK-DFS31C.git"
-   GIT_BRANCH="main"
-   GIT_SUBDIRECTORY="AD9_Linux_web"
-   KEEP_RELEASES=5
-   ```
-
-### Utilisation
-
-Déploiement de base :
-
-```
-./Deployment_script.sh deploy
-```
-
-Déploiement personnalisé :
-
-```
-./Deployment_script.sh -r https://github.com/user/repo.git -b nom_branche -d sous_repertoire deploy
-```
-
-Retour à la version précédente :
-
-```
-./Deployment_script.sh rollback
-```
-
-Modifier le nombre de versions à conserver :
-
-```
-./Deployment_script.sh -k 3 deploy
-```
-
-### Options
-
-- `-r` : Spécifie l'URL du dépôt Git
-- `-b` : Spécifie la branche Git à utiliser
-- `-d` : Spécifie le sous-répertoire du dépôt à déployer
-- `-k` : Spécifie le nombre de versions récentes à conserver
-
-### Note
-
-Ce script est conçu à des fins éducatives et peut nécessiter des modifications supplémentaires pour une utilisation en production, telles qu'une gestion améliorée des erreurs et des mesures de sécurité.
-
-## Manuel d'utilisation
-
-Un manuel d'utilisation (man page) a été créé pour ce script. Pour le consulter, utilisez la commande suivante après avoir installé le manuel :
-
-```
-man ./Deployment_script.1
-```
-
-Pour installer le manuel, copiez le fichier `Deployment_script.1` dans un répertoire de votre `MANPATH`, par exemple :
-
-```
-sudo cp Deployment_script.1 /usr/local/share/man/man1/
-sudo mandb
-```
-
-Vous pourrez ensuite accéder au manuel avec :
-
-```
-man Deployment_script
-```
-
 ### Build et rollback de l'application
 
 La majorité des projets web actuels ont nécessairement besoin d'une mécanique dite de "build" pour des contraintes de performance principalement.
@@ -221,3 +128,114 @@ Il est également commun et attendu que les options suivantes soient disponibles
  - `-V` / `--version` : donne la version sémantique du script (à cette étape du TP, vous êtes en version 1.0.0)
 
 Implémentez et documentez ces options.
+
+## Solution Amirofcode
+
+Nous avons créé un script de déploiement qui automatise le processus de déploiement d'un projet à partir d'un dépôt Git. Ce script suit les meilleures pratiques DevOps et inclut des fonctionnalités pour gérer les versions et les configurations.
+
+### Fonctionnalités
+
+- Clone un dépôt Git et une branche spécifiés
+- Crée des répertoires de version horodatés
+- Crée des liens symboliques pour les fichiers partagés dans chaque version
+- Maintient un lien symbolique 'current' pointant vers la dernière version
+- Prend en charge le retour aux versions précédentes
+- Nettoie les anciennes versions, en gardant un nombre spécifié
+- Utilise des variables d'environnement pour la configuration par défaut
+- Permet des options en ligne de commande pour remplacer les paramètres par défaut
+- Exécute une commande de build spécifiée ou utilise un Makefile si présent
+- Supporte une commande de rollback personnalisée
+- Offre des options pour le mode verbeux, silencieux et sans interaction
+
+### Prérequis
+
+- Shell Bash
+- Git installé et accessible depuis la ligne de commande
+
+### Configuration
+
+1. Clonez ce dépôt sur votre machine locale.
+2. Assurez-vous que le script de déploiement est exécutable :
+   ```
+   chmod +x Deployment_script.sh
+   ```
+3. Créez un fichier `.env` dans le même répertoire que le script avec le contenu suivant (ajustez si nécessaire) :
+   ```
+   GIT_REPO="https://github.com/Nyxis/ItAK-DFS31C.git"
+   GIT_BRANCH="main"
+   GIT_SUBDIRECTORY="AD9_Linux_web"
+   KEEP_RELEASES=5
+   ```
+
+### Utilisation
+
+Déploiement de base :
+```
+./Deployment_script.sh deploy
+```
+
+Déploiement personnalisé :
+```
+./Deployment_script.sh -r https://github.com/user/repo.git -b nom_branche -d sous_repertoire deploy
+```
+
+Retour à la version précédente :
+```
+./Deployment_script.sh rollback
+```
+
+Modifier le nombre de versions à conserver :
+```
+./Deployment_script.sh -k 3 deploy
+```
+
+Déploiement avec une commande de build spécifique :
+```
+./Deployment_script.sh -B "npm run build" deploy
+```
+
+Rollback avec une commande spécifique :
+```
+./Deployment_script.sh -R "php artisan migrate:rollback" rollback
+```
+
+### Options
+
+- `-r` : Spécifie l'URL du dépôt Git
+- `-b` : Spécifie la branche Git à utiliser
+- `-d` : Spécifie le sous-répertoire du dépôt à déployer
+- `-k` : Spécifie le nombre de versions récentes à conserver
+- `-B` : Spécifie une commande de build à exécuter
+- `-R` : Spécifie une commande de rollback à exécuter
+- `-h`, `--help` : Affiche l'aide
+- `-v`, `--verbose` : Active le mode verbeux
+- `-q`, `--quiet` : Active le mode silencieux
+- `-n`, `--no-interaction` : Désactive les interactions utilisateur
+- `-V`, `--version` : Affiche la version du script
+
+### Note
+
+Ce script est conçu à des fins éducatives et peut nécessiter des modifications supplémentaires pour une utilisation en production, telles qu'une gestion améliorée des erreurs et des mesures de sécurité.
+
+## Manuel d'utilisation
+
+Un manuel d'utilisation (man page) a été créé pour ce script. Pour le consulter, utilisez la commande suivante après avoir installé le manuel :
+
+```
+man ./Deployment_script.1
+```
+
+Pour installer le manuel, copiez le fichier `Deployment_script.1` dans un répertoire de votre `MANPATH`, par exemple :
+
+```
+sudo cp Deployment_script.1 /usr/local/share/man/man1/
+sudo mandb
+```
+
+Vous pourrez ensuite accéder au manuel avec :
+
+```
+man Deployment_script
+```
+
+Le manuel contient des informations détaillées sur toutes les options disponibles, leur utilisation, et des exemples de commandes.
