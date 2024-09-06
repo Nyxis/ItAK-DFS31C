@@ -1,0 +1,56 @@
+.TH DEPLOY 1 "September 2024" "Version 1.0.0" "Déploiement automatique"
+.SH NAME
+deploy.sh \- Script de déploiement automatique avec gestion des releases et rollback
+.SH SYNOPSIS
+.B deploy.sh
+[\fI-c\fP \fICOMMANDE\fP] [\fI-k\fP \fINUM\fP] [\fI-hvqVn\fP]
+.SH DESCRIPTION
+Le script \fBdeploy.sh\fP permet de déployer automatiquement un projet en créant des releases avec des fichiers partagés et des liens symboliques. Il gère également les fonctionnalités de rollback et la suppression des anciennes releases.
+.P
+Ce script suit les bonnes pratiques DevOps en utilisant une architecture de répertoires avec les sous-dossiers \fBreleases\fP, \fBshared\fP, et un lien symbolique \fBcurrent\fP pointant vers la version déployée.
+.SH COMMANDES
+.TP
+.B deploy
+Déploie une nouvelle release. Crée un nouveau répertoire dans \fBreleases\fP avec la date courante, copie ou crée des liens vers les fichiers partagés, met à jour le lien \fBcurrent\fP et supprime les anciennes releases au-delà du nombre spécifié.
+.TP
+.B rollback
+Permet de revenir à la release précédente. Met à jour le lien \fBcurrent\fP pour pointer sur la version déployée avant la dernière.
+.SH OPTIONS
+.TP
+\fB-c\fP \fICOMMANDE\fP
+Spécifie la commande à exécuter (deploy ou rollback). La commande par défaut est \fBdeploy\fP.
+.TP
+\fB-k\fP \fINUM\fP
+Spécifie le nombre de releases à conserver. Par défaut, il conserve les 5 dernières.
+.TP
+\fB-h\fP, \fB--help\fP
+Affiche ce message d'aide et quitte.
+.TP
+\fB-v\fP, \fB--verbose\fP
+Active le mode verbose. Affiche des messages détaillés pour le débogage.
+.TP
+\fB-q\fP, \fB--quiet\fP
+Désactive tous les messages à l'exception des erreurs critiques et des prompts.
+.TP
+\fB-n\fP, \fB--no-interaction\fP
+Désactive les prompts d'interaction et accepte automatiquement les options par défaut (dans ce cas, "Yes").
+.TP
+\fB-V\fP, \fB--version\fP
+Affiche la version actuelle du script (version sémantique 1.0.0).
+.SH EXEMPLES
+.TP
+Exemple de déploiement standard :
+.B sudo ./deploy.sh -c deploy
+.TP
+Déploiement en mode silencieux :
+.B sudo ./deploy.sh -c deploy -q
+.TP
+Rollback à la version précédente :
+.B sudo ./deploy.sh -c rollback
+.TP
+Déploiement avec conservation des 3 dernières releases :
+.B sudo ./deploy.sh -c deploy -k 3
+.SH AUTEURS
+Ce script a été développé dans le cadre d'un exercice de TP DevOps.
+.SH VERSION
+Version 1.0.0
