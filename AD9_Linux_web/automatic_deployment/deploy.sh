@@ -13,8 +13,8 @@ RELEASES_DIR="${PROJECT_ROOT}/releases"
 SHARED_DIR="${PROJECT_ROOT}/shared"
 CURRENT_LINK="${PROJECT_ROOT}/current"
 DEFAULT_KEEP_RELEASES=${DEFAULT_KEEP_RELEASES:-5}
-GIT_REPO=${GIT_REPO:-"https://github.com/example/clone_me.git"}
-GIT_BRANCH=${GIT_BRANCH:-"main"}
+GIT_REPO=${GIT_REPO:-""}
+GIT_BRANCH=${GIT_BRANCH:-""}
 GIT_FOLDER=${GIT_FOLDER:-""}
 
 # Fonction pour vérifier les prérequis
@@ -39,10 +39,11 @@ create_project_structure() {
 create_new_release() {
     local release_date=$(get_current_date)
     local release_dir="${RELEASES_DIR}/${release_date}"
-    git clone --branch "$GIT_BRANCH" "$GIT_REPO" "$release_dir" || { echo "Erreur lors du clonage du dépôt Git" >&2; return 1; }
-    if [ -n "$GIT_FOLDER" ]; then
-        mv "$release_dir/$GIT_FOLDER"/* "$release_dir" && rm -rf "$release_dir/$GIT_FOLDER"
-    fi
+    local temp_dir=$(mktemp -d)
+    git clone --branch "$GIT_BRANCH" "$GIT_REPO" "$temp_dir" || { echo "Erreur lors du clonage du dépôt Git" >&2; return 1; }
+    mkdir -p "$release_dir"
+    mv "$temp_dir/$GIT_FOLDER"/* "$release_dir/" || { echo "Erreur lors du déplacement des fichiers" >&2; return 1; }
+    rm -rf "$temp_dir"
     echo "Nouvelle release créée : ${release_dir}"
     return 0
 }
