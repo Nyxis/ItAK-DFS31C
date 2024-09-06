@@ -193,3 +193,31 @@ Vous pourrez ensuite accéder au manuel avec :
 ```
 man Deployment_script
 ```
+
+### Build et rollback de l'application
+
+La majorité des projets web actuels ont nécessairement besoin d'une mécanique dite de "build" pour des contraintes de performance principalement.
+On parle de "build" pour télécharger des dépendances, générer des caches, compiler des fichiers (Typescript, SCSS...), minifier des assets, importer des scripts SQL, créer des images Docker...
+
+Pour que votre script reste agnostique vis à vis d'une quelconque technologie, et donc rester portable, ajoutez une option `build` qui va référencer une ligne de commande à lancer pour déclencher le build.
+Modifiez ensuite votre script pour lancer cette commande. Si un code d'erreur est renvoyé par le build, le script de déploiement doit s'arrêter immédiatement.
+
+Si aucun build n'est défini, mais qu'un Makefile est présent à la racine du projet, proposez à l'utilisateur d'exécuter la commande `make` via un prompt (Y/n).
+
+Dans le cas de rollback d'une version, des opérations internes à l'application peuvent avoir à être effectuées (purge de certains fichiers, scripts SQL...). Créer une option `rollback` dans votre script pour lancer ces opérations.
+
+### Documentation
+
+Toute script doit être documenté.
+Créez donc une page de manuel (`man`) au format groff pour décrire les opérations disponibles, et leurs options.
+
+__Tips__ : https://doc.ubuntu-fr.org/tutoriel/groff_tuto
+
+Il est également commun et attendu que les options suivantes soient disponibles :
+ - `-h` / `--help` : affiche les commandes et options disponibles
+ - `-v` / `--verbose` : affiche des messages de debug
+ - `-q` (quiet) : désactive l'affichage de tous les messages à l'exception des prompts
+ - `-n` / `--no-interaction` : désactive les prompts en résolvant leur option par défaut (Yes dans notre cas)
+ - `-V` / `--version` : donne la version sémantique du script (à cette étape du TP, vous êtes en version 1.0.0)
+
+Implémentez et documentez ces options.
