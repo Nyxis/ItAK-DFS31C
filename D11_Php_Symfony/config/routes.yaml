@@ -1,0 +1,7 @@
+homepage:
+    path: /
+    controller: App\Controller\ProductController::index
+
+product_delete:
+    path: /product/delete/{id}
+    controller: App\Controller\ProductController::delete

@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product List{% endblock %}
+
+{% block body %}
+    <h1>Add a new product</h1>
+    {{ form_start(form) }}
+        <div>
+            {{ form_row(form.name) }}
+        </div>
+        <div>
+            {{ form_row(form.price) }}
+        </div>
+    {{ form_end(form) }}
+
+    <h2>Product List</h2>
+    <ul>
+        {% for product in products %}
+            <li>
+                {{ product.name }} - ${{ product.price }}
+                <a href="{{ path('product_delete', {id: product.id}) }}" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

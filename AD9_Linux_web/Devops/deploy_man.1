@@ -1,0 +1,87 @@
+.TH DEPLOY 1 "Septembre 2023" "Version 1.0.0" "Manuel utilisateur"
+.SH NOM
+deploy \- script de déploiement automatique
+.SH SYNOPSIS
+.B deploy
+[\fIOPTIONS\fR] \fICOMMANDE\fR
+.SH DESCRIPTION
+.B deploy
+est un script shell qui déploie automatiquement un projet dans un dossier en suivant les bonnes pratiques DevOps.
+.SH COMMANDES
+.TP
+.B deploy
+Déploie une nouvelle version du projet.
+.TP
+.B rollback
+Retourne à la version précédente du projet.
+.SH OPTIONS
+.TP
+.BR \-k ", " \-\-keep\-releases =\fINOMBRE\fR
+Nombre de releases à conserver (par défaut: 5).
+.TP
+.BR \-u ", " \-\-repo\-url =\fIURL\fR
+URL du dépôt Git à cloner.
+.TP
+.BR \-b ", " \-\-branch =\fIBRANCHE\fR
+Branche ou tag à cloner (par défaut: main).
+.TP
+.BR \-d ", " \-\-repo\-dir =\fIDOSSIER\fR
+Sous-répertoire du dépôt à cloner.
+.TP
+.BR \-\-build =\fICOMMANDE\fR
+Commande de build à exécuter après le clonage.
+.TP
+.BR \-\-rollback =\fICOMMANDE\fR
+Commande de rollback à exécuter lors d'un rollback.
+.TP
+.BR \-h ", " \-\-help
+Affiche l'aide et quitte.
+.TP
+.BR \-v ", " \-\-verbose
+Active la sortie verbeuse.
+.TP
+.BR \-q ", " \-\-quiet
+Mode silencieux, supprime toutes les sorties sauf les prompts.
+.TP
+.BR \-n ", " \-\-no\-interaction
+Mode non interactif, suppose 'oui' pour tous les prompts.
+.TP
+.BR \-V ", " \-\-version
+Affiche la version du script et quitte.
+.TP
+.BR \-\-install\-man
+Installe cette page de manuel dans le système.
+.TP
+.BR \-\-show\-man
+Affiche cette page de manuel sans l'installer.
+.SH ENVIRONNEMENT
+.TP
+.B DEFAULT_REPO_URL
+URL du dépôt Git par défaut.
+.TP
+.B DEFAULT_REPO_BRANCH
+Branche Git par défaut.
+.TP
+.B DEFAULT_REPO_DIR
+Sous-répertoire du dépôt par défaut.
+.SH FICHIERS
+.TP
+.B .env
+Fichier contenant les variables d'environnement par défaut.
+.SH EXEMPLES
+.TP
+Déployer une nouvelle version:
+.B deploy deploy
+.TP
+Effectuer un rollback:
+.B deploy rollback
+.TP
+Déployer avec des options spécifiques:
+.B deploy -k 3 -u https://github.com/user/repo.git -b develop deploy
+.SH AUTEUR
+Écrit par [Votre Nom].
+.SH SIGNALER DES BUGS
+Signalez les bugs à <votre@email.com>.
+.SH COPYRIGHT
+Copyright © 2023 [Votre Nom]. Licence GPLv3+: GNU GPL version 3 ou ultérieure <http://gnu.org/licenses/gpl.html>.
+C'est un logiciel libre: vous êtes libre de le modifier et de le redistribuer. IL N'Y A AUCUNE GARANTIE, dans la mesure permise par la loi.
