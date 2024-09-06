@@ -69,6 +69,16 @@ run_makefile() {
             make build
         else
             print_info "Le Makefile trouvé dans $makefile_dir ne contient pas de cible 'build'."
+            read -p "Voulez-vous exécuter 'make' sans cible spécifique ? (Y/n) " response
+            case "$response" in
+                [nN][oO]|[nN]) 
+                    print_info "L'exécution de 'make' a été ignorée."
+                    ;;
+                *)
+                    print_info "Exécution de 'make' dans $(pwd)"
+                    make
+                    ;;
+            esac
         fi
         cd - > /dev/null
     else
