@@ -200,8 +200,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Vérification des variables obligatoires
-if [ -z "$git_repo" ]; then
-    echo "Erreur : L'URL du dépôt Git (-r) est obligatoire."
+if [ "$action" = "deploy" ] && [ -z "$git_repo" ]; then
+    echo "Erreur : L'URL du dépôt Git (-r) est obligatoire pour le déploiement."
     usage
 fi
 
