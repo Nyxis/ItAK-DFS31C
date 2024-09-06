@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Charger les variables d'environnement
+if [ -f .env ]; then
+  source .env
+else
+  echo "❌ Error: .env file not found!"
+  exit 1
+fi
+
+# Check if git command is available
+if ! command -v git &> /dev/null; then
+  echo "❌ Error: git command not found."
+  exit 1
+fi
+
 # Default number of releases to keep
 keep_last_x_releases=5
 
@@ -17,6 +31,27 @@ deploy() {
     exit 1
   fi
   echo "✅ Created: $new_folder"
+
+  # Initialize a new git repository
+  git init "$release_dir/$new_folder"
+  cd "$release_dir/$new_folder"
+
+  # Set the remote repository
+  git remote add origin "$GIT_REPO"
+
+  # Enable sparse checkout
+  git config core.sparseCheckout true
+
+  # Specify the folder to checkout
+  echo "$GIT_DIR/" >> .git/info/sparse-checkout
+
+  # Pull the specified branch
+  git pull origin "$GIT_BRANCH"
+  if [ $? -ne 0 ]; then
+    echo "❌ Error: Failed to pull repository: $GIT_REPO"
+    exit 1
+  fi
+  echo "✅ Pulled repository: $GIT_REPO"
 
   # Ensure the shared directory exists
   mkdir -p "$shared_dir"
@@ -38,104 +73,32 @@ deploy() {
       ln -sfn "$file" "$target_dir/$(basename "$file")"
       if [ $? -ne 0 ]; then
         echo "❌ Error: Failed to create symlink for file: $file"
-        exit 1
       fi
     done
-  else
-    echo "⚠️ Shared directory not found: $shared_dir"
   fi
-
-  # Update the 'current' symlink to point to the new release
-  ln -sfn "$release_dir/$new_folder" "$release_dir/current"
-  if [ $? -ne 0 ]; then
-    echo "❌ Error: Failed to update 'current' symlink"
-    exit 1
-  fi
-  echo "🔗 Updated 'current' symlink to point to: $new_folder"
-
-  # Display the release directory structure
-  tree "$release_dir/$new_folder"
-  if [ $? -ne 0 ]; then
-    echo "❌ Error: Failed to display release directory structure"
-    exit 1
-  fi
-
-  # Remove the oldest releases
-  ls -t "$release_dir" | tail -n +$((keep_last_x_releases + 2)) | while read -r folder; do
-    if [ "$folder" != "current" ]; then
-      rm -rf "$release_dir/$folder"
-      if [ $? -ne 0 ]; then
-        echo "❌ Error: Failed to remove old release: $folder"
-        exit 1
-      fi
-      echo "🗑 Removed: $folder"
-    fi
-  done
 }
 
-# Function to rollback to the previous release
+# Function to rollback to a previous release
 rollback() {
-  # Get the list of releases sorted by date
-  releases=($(ls -t "$release_dir"))
-  if [ $? -ne 0 ]; then
-    echo "❌ Error: Failed to list releases in $release_dir"
+  # Implement rollback logic here
+  echo "🔄 Rolling back to previous release..."
+  # Example: Remove the latest release directory
+  latest_release=$(ls -td "$release_dir"/* | head -1)
+  if [ -d "$latest_release" ]; then
+    rm -rf "$latest_release"
+    echo "✅ Rolled back: Removed $latest_release"
+  else
+    echo "❌ Error: No release found to rollback."
     exit 1
   fi
-
-  # Check if there are enough releases to rollback
-  if [ ${#releases[@]} -lt 2 ]; then
-    echo "❌ Not enough releases to rollback."
-    exit 1
-  fi
-
-  # Get the current release index
-  current_release=$(readlink "$release_dir/current")
-  if [ $? -ne 0 ]; then
-    echo "❌ Error: Failed to read current symlink"
-    exit 1
-  fi
-  current_release=$(basename "$current_release")
-  current_index=$(echo "${releases[@]}" | tr ' ' '\n' | grep -n "^$current_release$" | cut -d: -f1)
-  if [ $? -ne 0 ]; then
-    echo "❌ Error: Failed to find current release in the list"
-    exit 1
-  fi
-
-  # Calculate the previous release index
-  previous_index=$((current_index))
-
-  # Check if the previous release exists
-  if [ $previous_index -ge ${#releases[@]} ]; then
-    echo "❌ No previous release to rollback to."
-    exit 1
-  fi
-
-  # Get the previous release
-  previous_release="${releases[$previous_index]}"
-
-  # Update the 'current' symlink to point to the previous release
-  ln -sfn "$release_dir/$previous_release" "$release_dir/current"
-  if [ $? -ne 0 ]; then
-    echo "❌ Error: Failed to update 'current' symlink"
-    exit 1
-  fi
-  echo "🔙 Rolled back 'current' symlink"
-  echo "   from: $current_release"
-  echo "   to  : $previous_release"
 }
 
 # Parse the command
 case "$1" in
-  deploy)
+  deploy|-d)
     deploy
     ;;
-    -d)
-    deploy
-    ;;
-  rollback)
-    rollback
-    ;;
-    -r)
+  rollback|-r)
     rollback
     ;;
   *)
