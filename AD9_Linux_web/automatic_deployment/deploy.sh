@@ -41,9 +41,19 @@ create_new_release() {
     local release_dir="${RELEASES_DIR}/${release_date}"
     local temp_dir=$(mktemp -d)
     git clone --branch "$GIT_BRANCH" "$GIT_REPO" "$temp_dir" || { echo "Erreur lors du clonage du dépôt Git" >&2; return 1; }
-    mkdir -p "$release_dir"
-    mv "$temp_dir/$GIT_FOLDER"/* "$release_dir/" || { echo "Erreur lors du déplacement des fichiers" >&2; return 1; }
-    rm -rf "$temp_dir"
+    if [ -n "$GIT_FOLDER" ]; then
+        if [ -d "$temp_dir/$GIT_FOLDER" ]; then
+            mkdir -p "$release_dir"
+            mv "$temp_dir/$GIT_FOLDER"/* "$release_dir/" || { echo "Erreur lors du déplacement des fichiers" >&2; return 1; }
+        else
+            echo "Le dossier spécifié $GIT_FOLDER n'existe pas dans le dépôt" >&2
+            rm -rf "$temp_dir"
+            return 1
+        fi
+    else
+        mv "$temp_dir" "$release_dir" || { echo "Erreur lors du déplacement des fichiers" >&2; return 1; }
+    fi
+    [ -d "$temp_dir" ] && rm -rf "$temp_dir"
     echo "Nouvelle release créée : ${release_dir}"
     return 0
 }
