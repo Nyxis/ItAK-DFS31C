@@ -1,0 +1,76 @@
+.TH DEPLOYAUTO 1 "Septembre 2024" "Version 1.0.0" "Commandes Utilisateur"
+.SH NOM
+deployAuto \- script de déploiement et de rollback d'applications
+.SH SYNOPSIS
+.B deployAuto
+[\fIdeploy\fR|\fIrollback\fR]
+[\fB\-k\fR \fInumber\fR]
+[\fB\-r\fR \fIrepo\fR]
+[\fB\-v\fR \fIversion\fR]
+[\fB\-d\fR \fIdirectory\fR]
+[\fB\-B\fR \fIcommand\fR]
+[\fB\-R\fR \fIcommand\fR]
+[\fB\-h\fR|\fB\-\-help\fR]
+[\fB\-v\fR|\fB\-\-verbose\fR]
+[\fB\-q\fR|\fB\-\-quiet\fR]
+[\fB\-n\fR|\fB\-\-no-interaction\fR]
+[\fB\-V\fR|\fB\-\-version\fR]
+.SH DESCRIPTION
+.B deployAuto
+est un script permettant de déployer une nouvelle version d'une application ou de revenir à une version précédente (rollback).
+.SH OPTIONS
+.TP
+.BR deploy
+Déploie une nouvelle release
+.TP
+.BR rollback
+Retourne à la version précédente
+.TP
+.BI \-k " number"
+Nombre de dernières releases à conserver (par défaut: 5)
+.TP
+.BI \-r " repo"
+URL du dépôt Git à cloner
+.TP
+.BI \-v " version"
+Version (tag ou branche) à déployer
+.TP
+.BI \-d " directory"
+Dossier spécifique du dépôt à déployer
+.TP
+.BI \-B " command"
+Commande de build à exécuter
+.TP
+.BI \-R " command"
+Commande de rollback à exécuter
+.TP
+.BR \-h ", " \-\-help
+Affiche ce message d'aide
+.TP
+.BR \-v ", " \-\-verbose
+Affiche des messages de debug
+.TP
+.BR \-q ", " \-\-quiet
+Désactive l'affichage de tous les messages à l'exception des prompts
+.TP
+.BR \-n ", " \-\-no-interaction
+Désactive les prompts en résolvant leur option par défaut
+.TP
+.BR \-V ", " \-\-version
+Affiche la version du script
+.SH EXEMPLES
+.TP
+Déployer une nouvelle release :
+.B deployAuto deploy -r https://github.com/user/repo.git
+.TP
+Effectuer un rollback :
+.B deployAuto rollback
+.TP
+Déployer en spécifiant un dépôt Git et une commande de build :
+.B deployAuto deploy -r https://github.com/user/repo.git -B "make build"
+.SH AUTEUR
+Theo Diaz
+.SH BUGS
+Signalez les bugs à tdiaz@it-students.fr
+.SH COPYRIGHT
+Copyright © 2024 Theo DIAZ. Licence GPL v3+: GNU GPL version 3 ou ultérieure <http://gnu.org/licenses/gpl.html>.
