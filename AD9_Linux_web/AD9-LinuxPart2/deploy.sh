@@ -1,4 +1,7 @@
+
 #!/bin/bash
+
+echo "Répertoire courant : $(pwd)"
 
 # Charger les variables d'environnement à partir du fichier .env
 if [ -f .env ]; then
@@ -14,6 +17,51 @@ then
     echo "Git n'est pas installé. Veuillez l'installer avant de continuer."
     exit 1
 fi
+
+# Variables pour les options
+VERSION="1.0.0"
+VERBOSE=0
+QUIET=0
+NO_INTERACTION=0
+
+# Fonction pour afficher l'aide
+function show_help {
+    echo "Usage: $0 [options] [deploy|rollback]"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help            Affiche cette aide."
+    echo "  -v, --verbose         Affiche des messages de debug."
+    echo "  -q                    Mode silencieux, n'affiche que les messages importants."
+    echo "  -n, --no-interaction   Désactive les prompts et utilise les réponses par défaut."
+    echo "  -V, --version         Affiche la version du script."
+}
+
+# Fonction pour afficher la version
+function show_version {
+    echo "$0 version $VERSION"
+}
+
+# Gestion des options de documentation
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h|--help) show_help; exit 0;;
+        -v|--verbose) VERBOSE=1;;
+        -q) QUIET=1;;
+        -n|--no-interaction) NO_INTERACTION=1;;
+        -V|--version) show_version; exit 0;;
+        *) break;;
+    esac
+    shift
+done
+
+# Vérifier si une commande (deploy ou rollback) est donnée
+if [ -z "$1" ]; then
+    echo "Veuillez spécifier une commande : deploy ou rollback"
+    exit 1
+fi
+
+COMMAND=$1
+
 
 # Nombre de releases à conserver (par défaut : 5)
 KEEP=5
@@ -40,8 +88,14 @@ while getopts ":k:r:b:d:n:" option; do
     esac
 done
 
+
+
 # Fonction pour exécuter le build
 function run_build {
+    # On définit le chemin du Makefile dynamiquement en fonction de la release actuelle
+    MAKEFILE_DIR="$RELEASE_DIR/$CLONE_DIR/clone_me"
+
+
     if [ -n "$BUILD_COMMAND" ]; then
         echo "Exécution de la commande de build : $BUILD_COMMAND"
         eval "$BUILD_COMMAND"
@@ -49,26 +103,28 @@ function run_build {
             echo "Erreur lors du build, arrêt du déploiement."
             exit 1
         fi
-    elif [ -f "Makefile" ]; then
-        # Si aucun build n'est défini mais qu'un Makefile est présent
+    elif [ -f "$MAKEFILE_DIR/Makefile" ]; then
+        # Si un Makefile est trouvé dans le répertoire spécifié
         if [ "$NO_INTERACTION" -eq 1 ]; then
             RESPONSE="y"
         else
-            read -p "Un Makefile est détecté. Voulez-vous exécuter 'make' ? (Y/n) " RESPONSE
+            read -p "Un Makefile est détecté dans $MAKEFILE_DIR. Voulez-vous exécuter 'make' ? (Y/n) " RESPONSE
         fi
 
         if [[ "$RESPONSE" == "y" || "$RESPONSE" == "Y" || "$RESPONSE" == "" ]]; then
-            echo "Exécution de la commande 'make'"
-            make
+            echo "Exécution de la commande 'make' dans $MAKEFILE_DIR"
+            (cd "$MAKEFILE_DIR" && make)
             if [ $? -ne 0 ]; then
                 echo "Erreur lors de l'exécution de 'make', arrêt du déploiement."
                 exit 1
             fi
         fi
     else
-        echo "Aucune commande de build définie, et aucun Makefile trouvé."
+        echo "Aucune commande de build définie, et aucun Makefile trouvé dans $MAKEFILE_DIR."
     fi
 }
+
+
 
 # Fonction pour exécuter des opérations spécifiques lors du rollback
 function run_rollback_operations {
@@ -99,11 +155,16 @@ if [ "$COMMAND" == "deploy" ]; then
     git fetch --depth 1 origin "$BRANCH_OR_TAG"
 
     # Activer le sparse-checkout pour ne cloner que le sous-dossier souhaité
-    git sparse-checkout init --cone
-    git sparse-checkout set "$CLONE_DIR/"
+git sparse-checkout init --cone
+git sparse-checkout set "AD9_Linux_web/clone_me"
 
     # Récupérer uniquement le sous-dossier
-    git pull origin "$BRANCH_OR_TAG"
+  git pull origin "$BRANCH_OR_TAG"
+
+# Ajout pour vérifier si le sous-dossier clone_me a bien été cloné
+echo "Vérification du contenu après clonage :"
+ls -l "$RELEASE_DIR/$CLONE_DIR"
+
 
     # Suppression manuelle des fichiers non désirés (sauf le sous-dossier)
     find . -maxdepth 1 ! -name "$CLONE_DIR" -type f -exec rm -f {} \;
