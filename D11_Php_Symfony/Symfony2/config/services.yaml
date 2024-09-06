@@ -1,0 +1,17 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            App\Product\PersistenceInterface: '@App\Product\JsonFileAdapter'
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Product\JsonFileAdapter:
+        arguments:
+            $filename: '%kernel.project_dir%/var/products.json'
