@@ -1,25 +1,25 @@
 .TH DEPLOYMENT_SCRIPT 1 "September 2024" "Version 1.0.0" "User Commands"
 .SH NAME
-Deployment_script \- Automated deployment script for Git-based projects
+Deployment_script \- Flexible automated deployment script for Git-based projects
 .SH SYNOPSIS
 .B Deployment_script.sh
 [\fIOPTIONS\fR] {deploy|rollback}
 .SH DESCRIPTION
 .B Deployment_script
-is a Bash script that automates the deployment process of a Git-based project. It can clone a specified repository, create timestamped release directories, manage symlinks, perform builds, and handle rollbacks.
+is a Bash script that automates the deployment process of Git-based projects. It can clone any specified repository, create timestamped release directories, manage symlinks, perform builds, and handle rollbacks.
 .SH OPTIONS
 .TP
 .BR \-k " " \fINUM\fR
 Specify the number of recent releases to keep (default: 5)
 .TP
 .BR \-r " " \fIURL\fR
-Specify the Git repository URL
+Specify the Git repository URL (required for deployment)
 .TP
 .BR \-b " " \fIBRANCH\fR
-Specify the Git branch to use
+Specify the Git branch to use (default: main)
 .TP
 .BR \-d " " \fIDIR\fR
-Specify the subdirectory in the repository to deploy
+Specify the subdirectory in the repository to deploy (optional)
 .TP
 .BR \-B " " \fICMD\fR
 Specify a build command to execute during deployment
@@ -67,37 +67,34 @@ Default number of releases to keep
 Configuration file for default environment variables
 .TP
 .I Makefile
-If present in the project root, can be used for building (with user confirmation)
+If present in the project root, can be used for building (with user confirmation unless in no-interaction mode)
 .SH EXAMPLES
 .TP
-Deploy using default settings:
-.B ./Deployment_script.sh deploy
+Deploy using a specific Git repository:
+.B ./Deployment_script.sh -r https://github.com/user/repo.git deploy
 .TP
-Deploy with custom repository and branch:
-.B ./Deployment_script.sh -r https://github.com/user/repo.git -b develop deploy
+Deploy with custom repository, branch, and build command:
+.B ./Deployment_script.sh -r https://github.com/user/repo.git -b develop -B "npm run build" deploy
 .TP
-Deploy with a specific build command:
-.B ./Deployment_script.sh -B "npm run build" deploy
+Deploy a specific subdirectory of the repository:
+.B ./Deployment_script.sh -r https://github.com/user/repo.git -d backend deploy
 .TP
-Rollback to previous release:
-.B ./Deployment_script.sh rollback
-.TP
-Rollback with a specific rollback command:
+Rollback to previous release with a specific rollback command:
 .B ./Deployment_script.sh -R "php artisan migrate:rollback" rollback
 .TP
 Deploy in verbose mode:
-.B ./Deployment_script.sh --verbose deploy
+.B ./Deployment_script.sh -r https://github.com/user/repo.git --verbose deploy
 .TP
 Deploy without user interaction:
-.B ./Deployment_script.sh --no-interaction deploy
+.B ./Deployment_script.sh -r https://github.com/user/repo.git --no-interaction deploy
 .SH EXIT STATUS
 The script exits 0 on success, and >0 if an error occurs.
 .SH AUTHOR
-Written by [Your Name].
+Written by Amirofcodes.
 .SH REPORTING BUGS
-Report bugs to: [Your Email or Bug Reporting URL]
+Report bugs to: amirofcodes20@gmail.com
 .SH COPYRIGHT
-Copyright © 2024 [Your Name or Organization]. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+Copyright © 2024 Amirofcodes. License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
 .SH SEE ALSO
 git(1), make(1), bash(1)

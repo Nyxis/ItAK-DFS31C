@@ -8,10 +8,10 @@ if [ -f .env ]; then
     source .env
 fi
 
-# Default values (can be overridden by .env file)
-GIT_REPO=${GIT_REPO:-"https://github.com/Nyxis/ItAK-DFS31C.git"}
+# Default values (can be overridden by .env file or command line options)
+GIT_REPO=${GIT_REPO:-""}
 GIT_BRANCH=${GIT_BRANCH:-"main"}
-GIT_SUBDIRECTORY=${GIT_SUBDIRECTORY:-"clone_me"}
+GIT_SUBDIRECTORY=${GIT_SUBDIRECTORY:-""}
 PROJECT_ROOT="./project"
 KEEP_RELEASES=${KEEP_RELEASES:-5}
 BUILD_COMMAND=""
@@ -37,20 +37,14 @@ check_git() {
 clone_repo() {
     local release_dir=$1
     rm -rf temp_clone
-    $VERBOSE && echo "Cloning repository: $GIT_REPO (branch: $GIT_BRANCH)"
+    echo "Cloning repository: $GIT_REPO (branch: $GIT_BRANCH)"
     if git clone -b "$GIT_BRANCH" "$GIT_REPO" temp_clone; then
-        if [ -d "temp_clone/$GIT_SUBDIRECTORY" ]; then
-            $VERBOSE && echo "Moving contents of $GIT_SUBDIRECTORY to $release_dir"
+        if [ -n "$GIT_SUBDIRECTORY" ] && [ -d "temp_clone/$GIT_SUBDIRECTORY" ]; then
+            echo "Moving contents of $GIT_SUBDIRECTORY to $release_dir"
             mv "temp_clone/$GIT_SUBDIRECTORY"/* "$release_dir/"
-        elif [ "$GIT_SUBDIRECTORY" = "." ]; then
-            $VERBOSE && echo "Moving all contents to $release_dir"
-            mv temp_clone/* "$release_dir/"
         else
-            echo "Specified subdirectory '$GIT_SUBDIRECTORY' not found in the repository."
-            echo "Available directories:"
-            ls -R temp_clone
-            rm -rf temp_clone
-            exit 1
+            echo "Moving all contents to $release_dir"
+            mv temp_clone/* "$release_dir/"
         fi
     else
         echo "Failed to clone repository"
@@ -87,25 +81,34 @@ cleanup_old_releases() {
 
 # Main deployment function
 deploy() {
+    if [ -z "$GIT_REPO" ]; then
+        echo "Error: No Git repository URL provided. Use -r option or set GIT_REPO environment variable."
+        exit 1
+    fi
+
     check_git
+
     local timestamp=$(get_timestamp)
     local release_dir="$PROJECT_ROOT/releases/$timestamp"
+
+    # Create the new release directory
     mkdir -p "$release_dir"
-    $VERBOSE && echo "Created new release directory: $release_dir"
+    echo "Created new release directory: $release_dir"
+
+    # Clone the repository
     clone_repo "$release_dir"
-    create_shared_symlinks "$release_dir"
 
     # Build step
     if [ -n "$BUILD_COMMAND" ]; then
-        $VERBOSE && echo "Executing build command: $BUILD_COMMAND"
-        if ! eval "$BUILD_COMMAND"; then
+        echo "Executing build command: $BUILD_COMMAND"
+        if ! (cd "$release_dir" && eval "$BUILD_COMMAND"); then
             echo "Build failed. Stopping deployment."
             exit 1
         fi
     elif [ -f "$release_dir/Makefile" ]; then
         if $NO_INTERACTION; then
-            $VERBOSE && echo "Makefile detected. Running 'make' (non-interactive mode)."
-            if ! make -C "$release_dir"; then
+            echo "Makefile detected. Running 'make' (non-interactive mode)."
+            if ! (cd "$release_dir" && make); then
                 echo "Make failed. Stopping deployment."
                 exit 1
             fi
@@ -113,7 +116,7 @@ deploy() {
             read -p "Makefile detected. Run 'make'? (Y/n) " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-                if ! make -C "$release_dir"; then
+                if ! (cd "$release_dir" && make); then
                     echo "Make failed. Stopping deployment."
                     exit 1
                 fi
@@ -121,8 +124,14 @@ deploy() {
         fi
     fi
 
+    # Create symlinks for shared files
+    create_shared_symlinks "$release_dir"
+
+    # Update the 'current' symlink
     ln -sfn "$(realpath "$release_dir")" "$PROJECT_ROOT/current"
-    $VERBOSE && echo "Updated 'current' symlink to point to the new release."
+    echo "Updated 'current' symlink to point to the new release."
+
+    # Cleanup old releases
     cleanup_old_releases "$KEEP_RELEASES"
 }
 
@@ -142,7 +151,7 @@ rollback() {
 
     if [ -n "$ROLLBACK_COMMAND" ]; then
         $VERBOSE && echo "Executing rollback command: $ROLLBACK_COMMAND"
-        if ! eval "$ROLLBACK_COMMAND"; then
+        if ! (cd "$previous_release" && eval "$ROLLBACK_COMMAND"); then
             echo "Rollback command failed."
             exit 1
         fi
@@ -154,9 +163,9 @@ display_help() {
     echo "Usage: $0 [OPTIONS] {deploy|rollback}"
     echo "Options:"
     echo "  -k NUM      Number of releases to keep (default: 5)"
-    echo "  -r URL      Git repository URL"
-    echo "  -b BRANCH   Git branch to use"
-    echo "  -d DIR      Subdirectory in the repository to deploy"
+    echo "  -r URL      Git repository URL (required)"
+    echo "  -b BRANCH   Git branch to use (default: main)"
+    echo "  -d DIR      Subdirectory in the repository to deploy (optional)"
     echo "  -B CMD      Build command to execute"
     echo "  -R CMD      Rollback command to execute"
     echo "  -h, --help  Display this help message"
