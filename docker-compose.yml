@@ -1,0 +1,12 @@
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+
+  php:
+    image: php:7.4-apache
+    volumes:
+      - /Users/admin/Desktop/Workspace/It-Akademy/ItAK-DFS31C:/var/www/html
+    ports:
+      - "8080:80"
