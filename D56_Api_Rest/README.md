@@ -2,13 +2,49 @@
 
 ## Hello world et multi-format
 
-Les API HTTP (aussi appelées API REST) offrent la possibilité au client de l'API (aussi appelé consommateur) de choisir son format de sortie via les headers de requêtes.
+Endpoints
+1. Endpoint de choix de format
+URL: /
+Méthode: GET
+Description: Page d'accueil offrant des liens pour choisir le format de réponse.
+Réponse:
+HTML avec des liens pour accéder aux différents formats (JSON, XML, CSV).
 
-À l'aide du langage et du framework de votre choix, créez un endpoint qui renvoie la map ```["hello" => "world"]``` au format donné en entrée.
+2. Endpoint de réponse
+URL: /api/hello
+Méthode: GET
+Description: Renvoie la map {"hello": "world"} dans le format spécifié par le header Accept.
+Headers
+Accept:
+application/json pour recevoir une réponse en JSON.
+application/xml pour recevoir une réponse en XML.
+text/csv pour recevoir une réponse en CSV.
 
-Dans un premier temps, ne proposez que les formats json, csv et xml; il devront être sélectionné par votre code via le header HTTP standard.
+3. Application des principes SOLID
+L'API respecte les principes SOLID, qui sont des lignes directrices pour écrire un code propre, maintenable et extensible. Voici comment chaque principe a été appliqué :
 
-Pour cet exercice et les suivants, vous veillerez à respecter les principes SOLID, ainsi que les bonnes pratiques des Apis REST vues en cours, sur le versioning sémantique et la documentation.
+S - Single Responsibility Principle (SRP)
+Chaque classe et chaque module de l'application a une seule responsabilité :
+
+JsonResponse, XmlResponse, et CsvResponse : Chacune de ces classes est responsable de formater les données dans un format spécifique (JSON, XML, ou CSV).
+ResponseFormatter : Cette classe gère la logique de formatage des réponses et est responsable de l'envoi des réponses formatées au client.
+O - Open/Closed Principle (OCP)
+Les classes sont ouvertes à l'extension mais fermées à la modification :
+
+Si de nouveaux formats de réponse doivent être ajoutés, il suffit de créer une nouvelle classe (par exemple, HtmlResponse) qui implémente la méthode de formatage sans avoir à modifier le code existant.
+L - Liskov Substitution Principle (LSP)
+Les classes dérivées doivent pouvoir remplacer leurs classes de base :
+
+Chaque formatteur (JsonResponse, XmlResponse, CsvResponse) peut être utilisé de manière interchangeable avec la classe ResponseFormatter. Les instances de ces classes peuvent être passées à ResponseFormatter, garantissant que le comportement attendu est respecté.
+I - Interface Segregation Principle (ISP)
+Il est préférable d'avoir plusieurs interfaces spécifiques plutôt qu'une seule interface générale :
+
+Bien que nous n'ayons pas utilisé d'interfaces explicites dans le code, chaque classe de formatteur a une méthode format(data) qui est spécifique à son comportement, permettant une utilisation ciblée sans obliger à utiliser des fonctionnalités non nécessaires.
+D - Dependency Inversion Principle (DIP)
+Les dépendances doivent être abstraites et non dépendre de modules de bas niveau :
+
+ResponseFormatter dépend des abstractions des formatteurs (JsonResponse, XmlResponse, CsvResponse) plutôt que de classes concrètes, permettant une meilleure flexibilité et facilitant les tests unitaires.
+
 
 ## DTO et Value objects
 
