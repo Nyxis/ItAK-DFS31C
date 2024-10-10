@@ -1,0 +1,22 @@
+{
+  "name": "apiexo",
+  "version": "1.0.0",
+  "description": "Exercices on APIs with NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tulrici/APIexo.git"
+  },
+  "author": "tulrici",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tulrici/APIexo/issues"
+  },
+  "homepage": "https://github.com/tulrici/APIexo#readme",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
