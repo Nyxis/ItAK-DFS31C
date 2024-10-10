@@ -86,15 +86,10 @@ Dans votre fork, récupérez son adresse SSH (sous le bouton "Code"), puis rende
 
 Pour lier votre dossier local à un dépôt distant, il reste à le déclarer en remote via la commande ```git remote add origin <adresse_ssh_du_fork>```. Notez que `origin` est un alias du dépôt, on utilise origin par convention.
 
-
-Vous avez maintenant
-
-
 Ajoutez un .gif humoristique sur Git au fichier ```README.md```.
 
 Sauvegardez vos modifications puis créez un commit. Envoyez ensuite ce commit à votre dépôt. Si la configuration a été bien réalisée, votre commit sera visible dans l'interface de Github, et le .gif affiché dans la page principale.
 Vérifiez également que le commit est à votre nom-prénom-email.
-
 
 
 ### Proposez une version au dépôt originel
