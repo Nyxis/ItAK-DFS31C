@@ -30,18 +30,14 @@ class WeatherData {
 
 class LocationWeatherData {
     constructor(location, weatherData) {
-        this.location = {
-            name: location.name,
-            latitude: location.coordinates.latitude,
-            longitude: location.coordinates.longitude,
-            city: location.city.name,
-            country: location.country
-        };
-        this.weather = {
-            temperature: weatherData.temperature,
-            humidity: weatherData.humidity,
-            windSpeed: weatherData.windSpeed
-        };
+        this.locationName = location.name;
+        this.latitude = location.coordinates.latitude;
+        this.longitude = location.coordinates.longitude;
+        this.cityName = location.city.name;
+        this.country = location.country;
+        this.temperature = weatherData.temperature;
+        this.humidity = weatherData.humidity;
+        this.windSpeed = weatherData.windSpeed;
         this.timestamp = new Date().toISOString();
     }
 }
@@ -53,3 +49,4 @@ module.exports = {
     WeatherData,
     LocationWeatherData
 };
+

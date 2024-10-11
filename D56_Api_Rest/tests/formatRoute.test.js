@@ -6,43 +6,54 @@ describe('Format API', () => {
         await closeServer();
     });
 
-    it('should return JSON format', async () => {
-        const res = await request(app).get('/api/v1/format/json');
-        expect(res.statusCode).toBe(200);
-        expect(res.headers['content-type']).toContain('application/json');
-        expect(res.body).toEqual({ hello: 'world' });
-    });
+    describe('Basic Format Endpoints', () => {
+        it('should return JSON format', async () => {
+            const res = await request(app).get('/api/v1/format/json');
+            expect(res.statusCode).toBe(200);
+            expect(res.headers['content-type']).toContain('application/json');
+            expect(res.body).toEqual({ hello: 'world' });
+        });
 
-    it('should return XML format', async () => {
-        const res = await request(app).get('/api/v1/format/xml');
-        expect(res.statusCode).toBe(200);
-        expect(res.headers['content-type']).toContain('application/xml');
-        expect(res.text).toBe('<hello>world</hello>');
-    });
+        it('should return XML format', async () => {
+            const res = await request(app).get('/api/v1/format/xml');
+            expect(res.statusCode).toBe(200);
+            expect(res.headers['content-type']).toContain('application/xml');
+            expect(res.text).toBe('<hello>world</hello>');
+        });
 
-    it('should return CSV format', async () => {
-        const res = await request(app).get('/api/v1/format/csv');
-        expect(res.statusCode).toBe(200);
-        expect(res.headers['content-type']).toContain('text/csv');
-        expect(res.text).toBe('hello\nworld\n');
+        it('should return CSV format', async () => {
+            const res = await request(app).get('/api/v1/format/csv');
+            expect(res.statusCode).toBe(200);
+            expect(res.headers['content-type']).toContain('text/csv');
+            expect(res.text).toBe('hello\nworld\n');
+        });
     });
 
     describe('Location Weather API', () => {
-        it('should return location weather data', async () => {
+        it('should return location weather data in a flat structure', async () => {
             const res = await request(app).get('/api/v1/location-weather?lat=40.7128&lon=-74.0060');
             expect(res.statusCode).toBe(200);
             expect(res.headers['content-type']).toContain('application/json');
-            expect(res.body).toHaveProperty('location');
-            expect(res.body).toHaveProperty('weather');
+            expect(res.body).toHaveProperty('locationName');
+            expect(res.body).toHaveProperty('latitude');
+            expect(res.body).toHaveProperty('longitude');
+            expect(res.body).toHaveProperty('cityName');
+            expect(res.body).toHaveProperty('country');
+            expect(res.body).toHaveProperty('temperature');
+            expect(res.body).toHaveProperty('humidity');
+            expect(res.body).toHaveProperty('windSpeed');
             expect(res.body).toHaveProperty('timestamp');
-            expect(res.body.location).toHaveProperty('name');
-            expect(res.body.location).toHaveProperty('latitude');
-            expect(res.body.location).toHaveProperty('longitude');
-            expect(res.body.location).toHaveProperty('city');
-            expect(res.body.location).toHaveProperty('country');
-            expect(res.body.weather).toHaveProperty('temperature');
-            expect(res.body.weather).toHaveProperty('humidity');
-            expect(res.body.weather).toHaveProperty('windSpeed');
+
+            // Check specific values
+            expect(res.body.latitude).toBe(40.7128);
+            expect(res.body.longitude).toBe(-74.0060);
+            expect(typeof res.body.locationName).toBe('string');
+            expect(typeof res.body.cityName).toBe('string');
+            expect(typeof res.body.country).toBe('string');
+            expect(typeof res.body.temperature).toBe('number');
+            expect(typeof res.body.humidity).toBe('number');
+            expect(typeof res.body.windSpeed).toBe('number');
+            expect(typeof res.body.timestamp).toBe('string');
         });
 
         it('should return 400 if both latitude and longitude are missing', async () => {
@@ -81,3 +92,4 @@ describe('Format API', () => {
         });
     });
 });
+

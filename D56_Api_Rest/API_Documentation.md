@@ -1,139 +1,168 @@
 # Format API Documentation
 
+## Base URL
+
+All URLs referenced in the documentation have the following base:
+
+```
+http://localhost:3000/api/v1
+```
+
 ## Endpoints
 
-1. `GET /api/v1/format/json`
-2. `GET /api/v1/format/xml`
-3. `GET /api/v1/format/csv`
+1. [GET /format/json](#1-get-formatjson)
+2. [GET /format/xml](#2-get-formatxml)
+3. [GET /format/csv](#3-get-formatcsv)
+4. [GET /location-weather](#4-get-location-weather)
 
-## Description
+---
 
-These endpoints return a "hello world" message in different formats based on the specific route accessed.
+### 1. GET /format/json
 
-## Responses
+Returns a simple JSON object.
 
-1. JSON Format: `/api/v1/format/json`
-    - Returns JSON: `{"hello": "world"}`
-    - Content-Type: application/json
-
-2. XML Format: `/api/v1/format/xml`
-    - Returns XML: `<hello>world</hello>`
-    - Content-Type: application/xml
-
-3. CSV Format: `/api/v1/format/csv`
-    - Returns CSV: `hello\nworld\n`
-    - Content-Type: text/csv
-
-## Status Codes
-
-- 200 OK: Successful request
-
-## Examples
-
-### JSON
+#### Request
 
 ```
-GET /api/v1/format/json
-
-Response:
-Status: 200 OK
-Content-Type: application/json
-
-{"hello": "world"}
+GET /format/json
 ```
-
-### XML
-
-```
-GET /api/v1/format/xml
-
-Response:
-Status: 200 OK
-Content-Type: application/xml
-
-<hello>world</hello>
-```
-
-### CSV
-
-```
-GET /api/v1/format/csv
-
-Response:
-Status: 200 OK
-Content-Type: text/csv
-
-hello
-world
-```
-# Format API Documentation
-
-[... previous content remains the same ...]
-
-## New Endpoints
-
-### `GET /api/v1/location-weather`
-
-Returns location and weather information for a given place.
-
-#### Request Parameters
-
-- `lat`: Latitude of the location (float)
-- `lon`: Longitude of the location (float)
 
 #### Response
 
-Returns a JSON object with the following structure:
+- **Status Code**: 200 OK
+- **Content-Type**: application/json
 
 ```json
 {
-  "location": {
-    "name": "string",
-    "latitude": float,
-    "longitude": float,
-    "city": "string",
-    "country": "string"
-  },
-  "weather": {
-    "temperature": float,
-    "humidity": float,
-    "windSpeed": float
-  },
-  "timestamp": "ISO8601 string"
+  "hello": "world"
 }
 ```
 
-#### Status Codes
+---
 
-- 200 OK: Successful request
-- 400 Bad Request: Invalid parameters
-- 404 Not Found: Location not found
-- 500 Internal Server Error: Error fetching weather data
+### 2. GET /format/xml
+
+Returns a simple XML structure.
+
+#### Request
+
+```
+GET /format/xml
+```
+
+#### Response
+
+- **Status Code**: 200 OK
+- **Content-Type**: application/xml
+
+```xml
+<hello>world</hello>
+```
+
+---
+
+### 3. GET /format/csv
+
+Returns a simple CSV format.
+
+#### Request
+
+```
+GET /format/csv
+```
+
+#### Response
+
+- **Status Code**: 200 OK
+- **Content-Type**: text/csv
+
+```
+hello
+world
+```
+
+---
+
+### 4. GET /location-weather
+
+Returns weather information for a given location.
+
+#### Request
+
+```
+GET /location-weather?lat={latitude}&lon={longitude}
+```
+
+#### Query Parameters
+
+- `lat` (required): Latitude of the location (float between -90 and 90)
+- `lon` (required): Longitude of the location (float between -180 and 180)
+
+#### Response
+
+- **Status Code**: 200 OK
+- **Content-Type**: application/json
+
+```json
+{
+  "locationName": "Mock Location",
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "cityName": "MockCity",
+  "country": "MockCountry",
+  "temperature": 25.5,
+  "humidity": 60,
+  "windSpeed": 10,
+  "timestamp": "2024-10-11T12:00:00Z"
+}
+```
+
+#### Error Responses
+
+1. Missing both latitude and longitude:
+   - **Status Code**: 400 Bad Request
+   ```json
+   {"error": "Both latitude and longitude are required"}
+   ```
+
+2. Missing latitude:
+   - **Status Code**: 400 Bad Request
+   ```json
+   {"error": "Latitude is required"}
+   ```
+
+3. Missing longitude:
+   - **Status Code**: 400 Bad Request
+   ```json
+   {"error": "Longitude is required"}
+   ```
+
+4. Invalid latitude (not between -90 and 90):
+   - **Status Code**: 400 Bad Request
+   ```json
+   {"error": "Invalid latitude. Must be a number between -90 and 90."}
+   ```
+
+5. Invalid longitude (not between -180 and 180):
+   - **Status Code**: 400 Bad Request
+   ```json
+   {"error": "Invalid longitude. Must be a number between -180 and 180."}
+   ```
 
 ## Data Models
 
-### Location (Value Object)
-- name: string
-- coordinates: GPS (Value Object)
-- city: City (Value Object)
-- country: string
-
-### GPS (Value Object)
-- latitude: float
-- longitude: float
-
-### City (Value Object)
-- name: string
-
-### WeatherData (Value Object)
-- temperature: float
-- humidity: float
-- windSpeed: float
-
 ### LocationWeatherData (DTO)
-- location: Location
-- weather: WeatherData
-- timestamp: Date
+
+- `locationName`: string
+- `latitude`: float
+- `longitude`: float
+- `cityName`: string
+- `country`: string
+- `temperature`: float
+- `humidity`: float
+- `windSpeed`: float
+- `timestamp`: string (ISO8601 format)
 
 ## Versioning
+
 This API follows Semantic Versioning. The current version is v1. Any breaking changes will be introduced in a new major version (e.g., v2).
