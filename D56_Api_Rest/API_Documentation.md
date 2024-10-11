@@ -166,3 +166,4 @@ GET /location-weather?lat={latitude}&lon={longitude}
 ## Versioning
 
 This API follows Semantic Versioning. The current version is v1. Any breaking changes will be introduced in a new major version (e.g., v2).
+
