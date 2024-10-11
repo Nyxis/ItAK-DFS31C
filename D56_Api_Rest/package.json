@@ -1,0 +1,20 @@
+{
+  "name": "api-format-demo",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "A simple API that returns data in different formats",
+  "dependencies": {
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "jest": "^27.5.1",
+    "supertest": "^6.3.4"
+  }
+}
