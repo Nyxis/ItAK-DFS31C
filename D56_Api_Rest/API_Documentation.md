@@ -1,4 +1,4 @@
-# Format API Documentation
+# Weather API Documentation
 
 ## Base URL
 
@@ -8,71 +8,72 @@ All URLs referenced in the documentation have the following base:
 http://localhost:3000/api/v1
 ```
 
+## Authentication
+
+This API uses two forms of authentication:
+
+1. API Key: Required for all requests.
+2. HMAC Signature: Required for all requests.
+
+### API Key
+
+Include your API key in the `x-api-key` header of all requests.
+
+### HMAC Signature
+
+For all queries, generate an HMAC-SHA256 signature using the query parameters, and include it in the `x-api-signature` header.
+
+Signature generation (pseudo-code):
+```
+// For city-based queries
+data = "city=" + cityName
+
+// For coordinate-based queries
+data = "lat=" + latitude + "&lon=" + longitude
+
+signature = HMAC-SHA256(data, secret)
+```
+
 ## Endpoints
 
-1. [GET /format/:format](#1-get-formatformat)
-2. [GET /location-weather](#2-get-location-weather)
+### 1. GET /
 
----
-
-### 1. GET /format/:format
-
-Returns a simple object in the specified format.
+Returns available endpoints and API information.
 
 #### Request
 
 ```
-GET /format/:format
+GET /
 ```
 
-Where `:format` can be one of:
-- `json`
-- `xml`
-- `csv`
+#### Headers
+
+- `x-api-key`: Your API key
+- `x-api-signature`: HMAC signature
+
+#### Query Parameters
+
+- `lat` and `lon` (required for coordinate-based queries): Latitude and longitude of the location
+- `city` (required for city-based queries): Name of the city
 
 #### Response
 
 - **Status Code**: 200 OK
-- **Content-Type**: Depends on the requested format
-
-##### JSON Format
 - **Content-Type**: application/json
 
 ```json
 {
-  "hello": "world"
+  "version": "v1",
+  "availableEndpoints": [
+    {
+      "name": "Get Weather Data",
+      "method": "GET",
+      "link": "http://localhost:3000/api/v1/location-weather?lat={latitude}&lon={longitude}",
+      "description": "Get weather information for a given location"
+    }
+  ]
 }
 ```
-
-##### XML Format
-- **Content-Type**: application/xml
-
-```xml
-<hello>world</hello>
-```
-
-##### CSV Format
-- **Content-Type**: text/csv
-
-```
-hello
-world
-```
-
-#### Error Response
-
-If an unsupported format is requested:
-
-- **Status Code**: 400 Bad Request
-- **Content-Type**: application/json
-
-```json
-{
-  "error": "Unsupported format"
-}
-```
-
----
 
 ### 2. GET /location-weather
 
@@ -81,13 +82,18 @@ Returns weather information for a given location.
 #### Request
 
 ```
-GET /location-weather?lat={latitude}&lon={longitude}
+GET /location-weather
 ```
+
+#### Headers
+
+- `x-api-key`: Your API key
+- `x-api-signature`: HMAC signature
 
 #### Query Parameters
 
-- `lat` (required): Latitude of the location (float between -90 and 90)
-- `lon` (required): Longitude of the location (float between -180 and 180)
+- `lat` and `lon` (required for coordinate-based queries): Latitude and longitude of the location
+- `city` (required for city-based queries): Name of the city
 
 #### Response
 
@@ -96,84 +102,61 @@ GET /location-weather?lat={latitude}&lon={longitude}
 
 ```json
 {
-  "locationName": "Mock Location",
+  "locationName": "New York",
   "latitude": 40.7128,
-  "longitude": -74.0060,
-  "cityName": "MockCity",
-  "country": "MockCountry",
-  "temperature": 25.5,
-  "humidity": 60,
-  "windSpeed": 10,
-  "timestamp": "2024-10-11T12:00:00Z"
+  "longitude": -74.006,
+  "cityName": "New York",
+  "country": "US",
+  "temperature": 14.76,
+  "humidity": 81,
+  "windSpeed": 2.57,
+  "timestamp": "2024-10-14T14:13:54.561Z"
 }
 ```
 
 #### Error Responses
 
-1. Missing both latitude and longitude:
-   - **Status Code**: 400 Bad Request
+1. Invalid API key:
+   - **Status Code**: 401 Unauthorized
    ```json
-   {"error": "Both latitude and longitude are required"}
+   {"error": "Unauthorized: Invalid API key"}
    ```
 
-2. Missing latitude:
-   - **Status Code**: 400 Bad Request
+2. Invalid signature:
+   - **Status Code**: 401 Unauthorized
    ```json
-   {"error": "Latitude is required"}
+   {"error": "Unauthorized: Invalid signature"}
    ```
 
-3. Missing longitude:
-   - **Status Code**: 400 Bad Request
-   ```json
-   {"error": "Longitude is required"}
-   ```
-
-4. Invalid latitude (not between -90 and 90):
+3. Invalid latitude (not between -90 and 90):
    - **Status Code**: 400 Bad Request
    ```json
    {"error": "Invalid latitude. Must be a number between -90 and 90."}
    ```
 
-5. Invalid longitude (not between -180 and 180):
+4. Invalid longitude (not between -180 and 180):
    - **Status Code**: 400 Bad Request
    ```json
    {"error": "Invalid longitude. Must be a number between -180 and 180."}
    ```
 
-## Data Models
+5. Invalid city name:
+   - **Status Code**: 400 Bad Request
+   ```json
+   {"error": "Invalid city name or failed to fetch location data."}
+   ```
 
-All models are now under the `Weather` namespace.
+6. Missing required parameters:
+   - **Status Code**: 400 Bad Request
+   ```json
+   {"error": "You must provide either a city name or latitude and longitude."}
+   ```
 
-### Weather.GPS
-- `latitude`: float
-- `longitude`: float
+## Rate Limiting
 
-### Weather.City
-- `name`: string
+Currently, there is no rate limiting implemented. Please use the API responsibly.
 
-### Weather.Location
-- `name`: string
-- `coordinates`: Weather.GPS
-- `city`: Weather.City
-- `country`: string
+## Data Sources
 
-### Weather.WeatherData
-- `temperature`: float
-- `humidity`: float
-- `windSpeed`: float
-
-### Weather.LocationWeatherData (DTO)
-- `locationName`: string
-- `latitude`: float
-- `longitude`: float
-- `cityName`: string
-- `country`: string
-- `temperature`: float
-- `humidity`: float
-- `windSpeed`: float
-- `timestamp`: string (ISO8601 format)
-
-## Versioning
-
-This API follows Semantic Versioning. The current version is v1. Any breaking changes will be introduced in a new major version (e.g., v2).
+This API uses OpenStreetMap for geocoding and OpenWeatherMap for weather data.
 

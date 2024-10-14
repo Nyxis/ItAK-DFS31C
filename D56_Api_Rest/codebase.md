@@ -281,8 +281,8 @@ export default LocationWeatherBuilder;
 
 ```js
 import axios from 'axios';
-import dotenv from 'dotenv';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -297,19 +297,17 @@ if (!lat || !lon || !key || !secret) {
 
 // Function to generate the HMAC signature
 function generateSignature(lat, lon, secret) {
-    const data = `lat=${lat}&lon=${lon}`; // Data to hash (could include method, path, etc.)
+    const data = `lat=${lat}&lon=${lon}`; // Data to hash
+    console.log('Client Data for Signature:', data);  // Log the data string
     const signature = crypto.createHmac('sha256', secret).update(data).digest('hex');
-
-    // Log the generated signature
-    console.log('Generated Signature:', signature);
-
+    console.log('Generated Signature (Client):', signature);
     return signature;
 }
 
 // Fetch the homepage and get the WeatherData endpoint
 async function fetchWeather() {
     try {
-        const homepageUrl = 'http://localhost:3000/api';  // Base URL without keys in query string
+        const homepageUrl = 'http://localhost:3000/api';  // Base URL
 
         // Generate signature
         const signature = generateSignature(lat, lon, secret);
@@ -322,19 +320,8 @@ async function fetchWeather() {
             }
         });
 
-        const weatherEndpoint = homepageResponse.data.availableEndpoints.find(
-            endpoint => endpoint.name === 'Get Weather Data'
-        );
+        console.log('Homepage Response:', homepageResponse.data);
 
-        if (!weatherEndpoint) {
-            throw new Error('Weather Data endpoint not found');
-        }
-
-        // Construct the weather data URL with the provided coordinates
-        const weatherUrl = weatherEndpoint.link.replace('{latitude}', lat).replace('{longitude}', lon);
-        const weatherResponse = await axios.get(weatherUrl);
-
-        console.log('Weather Data:', weatherResponse.data);
     } catch (error) {
         console.error('Error fetching weather data:', error.message);
     }
@@ -348,7 +335,6 @@ fetchWeather();
 # controllers/FormatController.js
 
 ```js
-// controllers/FormatController.js
 import Weather from '../models.js';
 import OpenStreetMapClient from '../services/OpenStreetMapClient.js';
 import OpenWeatherMapClient from '../services/OpenWeatherMapClient.js';
@@ -377,46 +363,55 @@ class FormatController {
     }
 
     async getLocationWeather(req, res) {
-        const { lat, lon } = req.query;
+        const { lat, lon, city } = req.query;
 
-        if (!lat || !lon) {
-            return res.status(400).json({ error: 'Both latitude and longitude are required' });
+        let latFloat, lonFloat;
+
+        // If city is provided, get coordinates from OpenStreetMap
+        if (city) {
+            try {
+                const locationData = await this.openStreetMapClient.getCityCoordinates(city);
+                latFloat = parseFloat(locationData.lat);
+                lonFloat = parseFloat(locationData.lon);
+            } catch (error) {
+                return res.status(400).json({ error: 'Invalid city name or failed to fetch location data.' });
+            }
+        } else if (lat && lon) {
+            latFloat = parseFloat(lat);
+            lonFloat = parseFloat(lon);
+
+            if (isNaN(latFloat) || latFloat < -90 || latFloat > 90) {
+                return res.status(400).json({ error: 'Invalid latitude. Must be a number between -90 and 90.' });
+            }
+            if (isNaN(lonFloat) || lonFloat < -180 || lonFloat > 180) {
+                return res.status(400).json({ error: 'Invalid longitude. Must be a number between -180 and 180.' });
+            }
+        } else {
+            return res.status(400).json({ error: 'You must provide either a city name or latitude and longitude.' });
         }
 
-        const latFloat = parseFloat(lat);
-        const lonFloat = parseFloat(lon);
-
-        if (isNaN(latFloat) || latFloat < -90 || latFloat > 90) {
-            return res.status(400).json({ error: 'Invalid latitude. Must be a number between -90 and 90.' });
-        }
-        if (isNaN(lonFloat) || lonFloat < -180 || lonFloat > 180) {
-            return res.status(400).json({ error: 'Invalid longitude. Must be a number between -180 and 180.' });
-        }
-
+        // Fetch weather data using the lat/lon coordinates
         try {
-            const [locationData, weatherData] = await Promise.all([
-                this.openStreetMapClient.getLocationInfo(latFloat, lonFloat),
-                this.openWeatherMapClient.getWeatherData(latFloat, lonFloat)
-            ]);
-
+            const weatherData = await this.openWeatherMapClient.getWeatherData(latFloat, lonFloat);
             const builder = new LocationWeatherBuilder();
             const locationWeather = builder
-                .setLocationName(locationData.display_name)
+                .setLocationName(city || weatherData.name)
                 .setCoordinates(latFloat, lonFloat)
-                .setCityName(locationData.address?.city || 'Unknown')
-                .setCountry(locationData.address?.country || 'Unknown')
+                .setCityName(weatherData.name || 'Unknown')
+                .setCountry(weatherData.sys?.country || 'Unknown')
                 .setWeatherData(weatherData.main.temp, weatherData.main.humidity, weatherData.wind.speed)
                 .build();
 
             res.status(200).json(locationWeather);
         } catch (error) {
-            console.error('Error fetching location or weather data:', error);
-            res.status(500).json({ error: 'Failed to fetch location or weather data' });
+            console.error('Error fetching weather data:', error);
+            res.status(500).json({ error: 'Failed to fetch weather data' });
         }
     }
 }
 
 export default FormatController;
+
 
 
 ```
@@ -611,7 +606,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 # routes/formatRoute.js
 
 ```js
-// routes/formatRoute.js
 import express from 'express';
 import FormatController from '../controllers/FormatController.js';
 
@@ -620,6 +614,8 @@ export default function(apiKey) {
     const formatController = new FormatController(apiKey);
 
     router.get('/format/:format', FormatController.getFormat);
+
+    // Now it can accept either lat/lon or city
     router.get('/location-weather', (req, res) => formatController.getLocationWeather(req, res));
 
     return router;
@@ -631,7 +627,6 @@ export default function(apiKey) {
 # routes/hypermediaRoute.js
 
 ```js
-// routes/hypermediaRoute.js
 import express from 'express';
 import crypto from 'crypto';
 
@@ -643,21 +638,24 @@ const API_SECRET = 'sample_secret';
 
 // Function to verify the HMAC signature
 function verifySignature(lat, lon, receivedSignature, secret) {
-    const data = `lat=${lat}&lon=${lon}`;
-    const generatedSignature = crypto.createHmac('sha256', secret).update(data).digest('hex');
+    const formattedLat = lat.toFixed(4);
+    const formattedLon = lon.toFixed(4);
 
-    // Log the signatures for comparison
-    console.log('Received Signature:', receivedSignature);
-    console.log('Generated Signature:', generatedSignature);
+    const data = `lat=${formattedLat}&lon=${formattedLon}`;
+    console.log('Server Data for Signature:', data);
+
+    const generatedSignature = crypto.createHmac('sha256', secret).update(data).digest('hex');
+    console.log('Generated Signature (Server):', generatedSignature);
+    console.log('Received Signature (Client):', receivedSignature);
 
     return generatedSignature === receivedSignature;
 }
+
 
 router.get('/', (req, res) => {
     const apiKey = req.headers['x-api-key'];
     const apiSignature = req.headers['x-api-signature'];
 
-    // Hardcoded sample location (could be different in real use cases)
     const lat = 40.7128;
     const lon = -74.0060;
 
@@ -671,7 +669,7 @@ router.get('/', (req, res) => {
         return res.status(401).json({ error: 'Unauthorized: Invalid signature' });
     }
 
-    // Hypermedia links (currently only the WeatherData endpoint)
+    // Return hypermedia links or the necessary data
     const hypermediaLinks = {
         version: 'v1',
         availableEndpoints: [
@@ -688,6 +686,7 @@ router.get('/', (req, res) => {
 });
 
 export default router;
+
 
 
 ```
@@ -716,6 +715,26 @@ class OpenStreetMapClient {
         } catch (error) {
             console.error('Error fetching location data:', error.response ? error.response.data : error.message);
             throw new Error('Failed to fetch location data');
+        }
+    }
+
+    // New method to get coordinates by city name
+    async getCityCoordinates(city) {
+        try {
+            const response = await axios.get(`${this.baseURL}/search`, {
+                params: {
+                    q: city,
+                    format: 'json',
+                    limit: 1
+                }
+            });
+            if (response.data.length === 0) {
+                throw new Error('City not found');
+            }
+            return response.data[0];  // Return the first result (most relevant)
+        } catch (error) {
+            console.error('Error fetching city coordinates:', error.response ? error.response.data : error.message);
+            throw new Error('Failed to fetch city coordinates');
         }
     }
 }
