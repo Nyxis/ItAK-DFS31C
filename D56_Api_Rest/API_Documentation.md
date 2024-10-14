@@ -10,26 +10,32 @@ http://localhost:3000/api/v1
 
 ## Endpoints
 
-1. [GET /format/json](#1-get-formatjson)
-2. [GET /format/xml](#2-get-formatxml)
-3. [GET /format/csv](#3-get-formatcsv)
-4. [GET /location-weather](#4-get-location-weather)
+1. [GET /format/:format](#1-get-formatformat)
+2. [GET /location-weather](#2-get-location-weather)
 
 ---
 
-### 1. GET /format/json
+### 1. GET /format/:format
 
-Returns a simple JSON object.
+Returns a simple object in the specified format.
 
 #### Request
 
 ```
-GET /format/json
+GET /format/:format
 ```
+
+Where `:format` can be one of:
+- `json`
+- `xml`
+- `csv`
 
 #### Response
 
 - **Status Code**: 200 OK
+- **Content-Type**: Depends on the requested format
+
+##### JSON Format
 - **Content-Type**: application/json
 
 ```json
@@ -38,42 +44,14 @@ GET /format/json
 }
 ```
 
----
-
-### 2. GET /format/xml
-
-Returns a simple XML structure.
-
-#### Request
-
-```
-GET /format/xml
-```
-
-#### Response
-
-- **Status Code**: 200 OK
+##### XML Format
 - **Content-Type**: application/xml
 
 ```xml
 <hello>world</hello>
 ```
 
----
-
-### 3. GET /format/csv
-
-Returns a simple CSV format.
-
-#### Request
-
-```
-GET /format/csv
-```
-
-#### Response
-
-- **Status Code**: 200 OK
+##### CSV Format
 - **Content-Type**: text/csv
 
 ```
@@ -81,9 +59,22 @@ hello
 world
 ```
 
+#### Error Response
+
+If an unsupported format is requested:
+
+- **Status Code**: 400 Bad Request
+- **Content-Type**: application/json
+
+```json
+{
+  "error": "Unsupported format"
+}
+```
+
 ---
 
-### 4. GET /location-weather
+### 2. GET /location-weather
 
 Returns weather information for a given location.
 
@@ -151,8 +142,27 @@ GET /location-weather?lat={latitude}&lon={longitude}
 
 ## Data Models
 
-### LocationWeatherData (DTO)
+All models are now under the `Weather` namespace.
 
+### Weather.GPS
+- `latitude`: float
+- `longitude`: float
+
+### Weather.City
+- `name`: string
+
+### Weather.Location
+- `name`: string
+- `coordinates`: Weather.GPS
+- `city`: Weather.City
+- `country`: string
+
+### Weather.WeatherData
+- `temperature`: float
+- `humidity`: float
+- `windSpeed`: float
+
+### Weather.LocationWeatherData (DTO)
 - `locationName`: string
 - `latitude`: float
 - `longitude`: float

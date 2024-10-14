@@ -1,16 +1,19 @@
-const { GPS, City, Location, WeatherData, LocationWeatherData } = require('../models');
+const Weather = require('../models');
 
 class FormatController {
-    static getJsonFormat(req, res) {
-        res.status(200).json({ hello: 'world' });
-    }
+    static getFormat(req, res) {
+        const format = req.params.format;
+        const formatHandlers = {
+            'json': () => res.json({ hello: 'world' }),
+            'xml': () => res.type('application/xml').send('<hello>world</hello>'),
+            'csv': () => res.type('text/csv').send('hello\nworld\n')
+        };
 
-    static getXmlFormat(req, res) {
-        res.status(200).set('Content-Type', 'application/xml').send('<hello>world</hello>');
-    }
-
-    static getCsvFormat(req, res) {
-        res.status(200).set('Content-Type', 'text/csv').send('hello\nworld\n');
+        if (formatHandlers.hasOwnProperty(format)) {
+            formatHandlers[format]();
+        } else {
+            res.status(400).json({ error: 'Unsupported format' });
+        }
     }
 
     static getLocationWeather(req, res) {
@@ -38,12 +41,12 @@ class FormatController {
 
         // Here you would typically fetch real data from external APIs
         // For this example, we'll use mock data
-        const gps = new GPS(latFloat, lonFloat);
-        const city = new City('MockCity');
-        const location = new Location('Mock Location', gps, city, 'MockCountry');
-        const weatherData = new WeatherData(25.5, 60, 10);
+        const gps = new Weather.GPS(latFloat, lonFloat);
+        const city = new Weather.City('MockCity');
+        const location = new Weather.Location('Mock Location', gps, city, 'MockCountry');
+        const weatherData = new Weather.WeatherData(25.5, 60, 10);
 
-        const locationWeatherData = new LocationWeatherData(location, weatherData);
+        const locationWeatherData = new Weather.LocationWeatherData(location, weatherData);
 
         res.status(200).json(locationWeatherData);
     }

@@ -27,6 +27,12 @@ describe('Format API', () => {
             expect(res.headers['content-type']).toContain('text/csv');
             expect(res.text).toBe('hello\nworld\n');
         });
+
+        it('should return 400 for unsupported format', async () => {
+            const res = await request(app).get('/api/v1/format/unsupported');
+            expect(res.statusCode).toBe(400);
+            expect(res.body).toEqual({ error: 'Unsupported format' });
+        });
     });
 
     describe('Location Weather API', () => {
