@@ -105,3 +105,8 @@ Dans ce fichier, définissez un service "web" qui devra simplement accepter des 
 Vous pouvez utiliser Apache ou Nginx au choix.
 
 Tips : utilisez les commandes `docker-compose up` pour démarrer et `down` pour stopper vos conteneurs.
+
+La force de Docker est de permettre à des systèmes isolés de
+
+
+
