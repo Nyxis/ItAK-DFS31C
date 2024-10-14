@@ -191,18 +191,20 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import express from 'express';
 import formatRoute from './routes/formatRoute.js';
+import hypermediaRoute from './routes/hypermediaRoute.js'; // Import the new route
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, '.env') });
 
-console.log('OPENWEATHERMAP_API_KEY:', process.env.OPENWEATHERMAP_API_KEY);
-
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use('/api/v1', formatRoute(process.env.OPENWEATHERMAP_API_KEY));
+
+// Add the new homepage route at the root of the API
+app.use('/api', hypermediaRoute);
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
@@ -213,12 +215,144 @@ export { app };
 
 ```
 
-# controllers/FormatController.js
+# builders/LocationWeatherBuilder.js
 
 ```js
 import Weather from '../models.js';
+
+class LocationWeatherBuilder {
+    constructor() {
+        this.locationName = '';
+        this.latitude = 0;
+        this.longitude = 0;
+        this.cityName = '';
+        this.country = '';
+        this.temperature = 0;
+        this.humidity = 0;
+        this.windSpeed = 0;
+        this.timestamp = new Date().toISOString();
+    }
+
+    setLocationName(name) {
+        this.locationName = name;
+        return this;
+    }
+
+    setCoordinates(latitude, longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        return this;
+    }
+
+    setCityName(cityName) {
+        this.cityName = cityName;
+        return this;
+    }
+
+    setCountry(country) {
+        this.country = country;
+        return this;
+    }
+
+    setWeatherData(temp, humidity, windSpeed) {
+        this.temperature = temp;
+        this.humidity = humidity;
+        this.windSpeed = windSpeed;
+        return this;
+    }
+
+    build() {
+        const gps = new Weather.GPS(this.latitude, this.longitude);
+        const city = new Weather.City(this.cityName);
+        const location = new Weather.Location(this.locationName, gps, city, this.country);
+        const weatherData = new Weather.WeatherData(this.temperature, this.humidity, this.windSpeed);
+
+        return new Weather.LocationWeatherData(location, weatherData);
+    }
+}
+
+export default LocationWeatherBuilder;
+
+
+
+```
+
+# cli.js
+
+```js
+import axios from 'axios';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
+
+dotenv.config();
+
+// CLI arguments: lat, lon, key, secret
+const [lat, lon, key, secret] = process.argv.slice(2);
+
+// Validate input
+if (!lat || !lon || !key || !secret) {
+    console.error('Usage: node cli.js <latitude> <longitude> <key> <secret>');
+    process.exit(1);
+}
+
+// Function to generate the HMAC signature
+function generateSignature(lat, lon, secret) {
+    const data = `lat=${lat}&lon=${lon}`; // Data to hash (could include method, path, etc.)
+    const signature = crypto.createHmac('sha256', secret).update(data).digest('hex');
+
+    // Log the generated signature
+    console.log('Generated Signature:', signature);
+
+    return signature;
+}
+
+// Fetch the homepage and get the WeatherData endpoint
+async function fetchWeather() {
+    try {
+        const homepageUrl = 'http://localhost:3000/api';  // Base URL without keys in query string
+
+        // Generate signature
+        const signature = generateSignature(lat, lon, secret);
+
+        // Send the key, secret, and signature in the headers
+        const homepageResponse = await axios.get(homepageUrl, {
+            headers: {
+                'x-api-key': key,        // API key
+                'x-api-signature': signature,  // HMAC signature
+            }
+        });
+
+        const weatherEndpoint = homepageResponse.data.availableEndpoints.find(
+            endpoint => endpoint.name === 'Get Weather Data'
+        );
+
+        if (!weatherEndpoint) {
+            throw new Error('Weather Data endpoint not found');
+        }
+
+        // Construct the weather data URL with the provided coordinates
+        const weatherUrl = weatherEndpoint.link.replace('{latitude}', lat).replace('{longitude}', lon);
+        const weatherResponse = await axios.get(weatherUrl);
+
+        console.log('Weather Data:', weatherResponse.data);
+    } catch (error) {
+        console.error('Error fetching weather data:', error.message);
+    }
+}
+
+fetchWeather();
+
+
+```
+
+# controllers/FormatController.js
+
+```js
+// controllers/FormatController.js
+import Weather from '../models.js';
 import OpenStreetMapClient from '../services/OpenStreetMapClient.js';
 import OpenWeatherMapClient from '../services/OpenWeatherMapClient.js';
+import LocationWeatherBuilder from '../builders/LocationWeatherBuilder.js';
 
 class FormatController {
     constructor(apiKey) {
@@ -265,41 +399,19 @@ class FormatController {
                 this.openWeatherMapClient.getWeatherData(latFloat, lonFloat)
             ]);
 
-            console.log('Location Data:', JSON.stringify(locationData, null, 2));
-            console.log('Weather Data:', JSON.stringify(weatherData, null, 2));
+            const builder = new LocationWeatherBuilder();
+            const locationWeather = builder
+                .setLocationName(locationData.display_name)
+                .setCoordinates(latFloat, lonFloat)
+                .setCityName(locationData.address?.city || 'Unknown')
+                .setCountry(locationData.address?.country || 'Unknown')
+                .setWeatherData(weatherData.main.temp, weatherData.main.humidity, weatherData.wind.speed)
+                .build();
 
-            const gps = new Weather.GPS(latFloat, lonFloat);
-            const city = new Weather.City(locationData.address?.city || locationData.address?.town || locationData.address?.village || 'Unknown');
-            const location = new Weather.Location(locationData.display_name, gps, city, locationData.address?.country || 'Unknown');
-
-            const weather = new Weather.WeatherData(
-                weatherData.main.temp,
-                weatherData.main.humidity,
-                weatherData.wind.speed
-            );
-
-            const locationWeatherData = new Weather.LocationWeatherData(location, weather);
-
-            res.status(200).json(locationWeatherData);
+            res.status(200).json(locationWeather);
         } catch (error) {
             console.error('Error fetching location or weather data:', error);
-
-            let errorMessage = 'Failed to fetch location or weather data';
-            let statusCode = 500;
-
-            if (error.response) {
-                statusCode = error.response.status;
-                errorMessage += `: ${error.response.data.message || error.response.statusText}`;
-            } else if (error.request) {
-                errorMessage += ': No response received from the server';
-            } else {
-                errorMessage += `: ${error.message}`;
-            }
-
-            res.status(statusCode).json({
-                error: errorMessage,
-                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-            });
+            res.status(500).json({ error: 'Failed to fetch location or weather data' });
         }
     }
 }
@@ -499,6 +611,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 # routes/formatRoute.js
 
 ```js
+// routes/formatRoute.js
 import express from 'express';
 import FormatController from '../controllers/FormatController.js';
 
@@ -511,6 +624,70 @@ export default function(apiKey) {
 
     return router;
 }
+
+
+```
+
+# routes/hypermediaRoute.js
+
+```js
+// routes/hypermediaRoute.js
+import express from 'express';
+import crypto from 'crypto';
+
+const router = express.Router();
+
+// Sample hardcoded key/secret for authentication
+const API_KEY = 'sample_key';
+const API_SECRET = 'sample_secret';
+
+// Function to verify the HMAC signature
+function verifySignature(lat, lon, receivedSignature, secret) {
+    const data = `lat=${lat}&lon=${lon}`;
+    const generatedSignature = crypto.createHmac('sha256', secret).update(data).digest('hex');
+
+    // Log the signatures for comparison
+    console.log('Received Signature:', receivedSignature);
+    console.log('Generated Signature:', generatedSignature);
+
+    return generatedSignature === receivedSignature;
+}
+
+router.get('/', (req, res) => {
+    const apiKey = req.headers['x-api-key'];
+    const apiSignature = req.headers['x-api-signature'];
+
+    // Hardcoded sample location (could be different in real use cases)
+    const lat = 40.7128;
+    const lon = -74.0060;
+
+    // Check for API key
+    if (apiKey !== API_KEY) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+    }
+
+    // Verify the signature
+    if (!verifySignature(lat, lon, apiSignature, API_SECRET)) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid signature' });
+    }
+
+    // Hypermedia links (currently only the WeatherData endpoint)
+    const hypermediaLinks = {
+        version: 'v1',
+        availableEndpoints: [
+            {
+                name: 'Get Weather Data',
+                method: 'GET',
+                link: `${req.protocol}://${req.get('host')}/api/v1/location-weather?lat={latitude}&lon={longitude}`,
+                description: 'Get weather information for a given location'
+            }
+        ]
+    };
+
+    res.status(200).json(hypermediaLinks);
+});
+
+export default router;
 
 
 ```

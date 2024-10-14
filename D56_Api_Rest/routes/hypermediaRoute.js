@@ -1,4 +1,6 @@
+// routes/hypermediaRoute.js
 import express from 'express';
+import crypto from 'crypto';
 
 const router = express.Router();
 
@@ -6,13 +8,34 @@ const router = express.Router();
 const API_KEY = 'sample_key';
 const API_SECRET = 'sample_secret';
 
-router.get('/', (req, res) => {
-    const apiKey = req.headers['x-api-key'];        // Get key from headers
-    const apiSecret = req.headers['x-api-secret'];  // Get secret from headers
+// Function to verify the HMAC signature
+function verifySignature(lat, lon, receivedSignature, secret) {
+    const data = `lat=${lat}&lon=${lon}`;
+    const generatedSignature = crypto.createHmac('sha256', secret).update(data).digest('hex');
 
-    // Check for API key and secret in headers
-    if (apiKey !== API_KEY || apiSecret !== API_SECRET) {
-        return res.status(401).json({ error: 'Unauthorized: Invalid API key or secret' });
+    // Log the signatures for comparison
+    console.log('Received Signature:', receivedSignature);
+    console.log('Generated Signature:', generatedSignature);
+
+    return generatedSignature === receivedSignature;
+}
+
+router.get('/', (req, res) => {
+    const apiKey = req.headers['x-api-key'];
+    const apiSignature = req.headers['x-api-signature'];
+
+    // Hardcoded sample location (could be different in real use cases)
+    const lat = 40.7128;
+    const lon = -74.0060;
+
+    // Check for API key
+    if (apiKey !== API_KEY) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+    }
+
+    // Verify the signature
+    if (!verifySignature(lat, lon, apiSignature, API_SECRET)) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid signature' });
     }
 
     // Hypermedia links (currently only the WeatherData endpoint)

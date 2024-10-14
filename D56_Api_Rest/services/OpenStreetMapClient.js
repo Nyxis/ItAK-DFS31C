@@ -21,6 +21,26 @@ class OpenStreetMapClient {
             throw new Error('Failed to fetch location data');
         }
     }
+
+    // New method to get coordinates by city name
+    async getCityCoordinates(city) {
+        try {
+            const response = await axios.get(`${this.baseURL}/search`, {
+                params: {
+                    q: city,
+                    format: 'json',
+                    limit: 1
+                }
+            });
+            if (response.data.length === 0) {
+                throw new Error('City not found');
+            }
+            return response.data[0];  // Return the first result (most relevant)
+        } catch (error) {
+            console.error('Error fetching city coordinates:', error.response ? error.response.data : error.message);
+            throw new Error('Failed to fetch city coordinates');
+        }
+    }
 }
 
 export default OpenStreetMapClient;

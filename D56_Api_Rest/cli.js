@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -12,16 +13,30 @@ if (!lat || !lon || !key || !secret) {
     process.exit(1);
 }
 
+// Function to generate the HMAC signature
+function generateSignature(lat, lon, secret) {
+    const data = `lat=${lat}&lon=${lon}`; // Data to hash (could include method, path, etc.)
+    const signature = crypto.createHmac('sha256', secret).update(data).digest('hex');
+
+    // Log the generated signature
+    console.log('Generated Signature:', signature);
+
+    return signature;
+}
+
 // Fetch the homepage and get the WeatherData endpoint
 async function fetchWeather() {
     try {
         const homepageUrl = 'http://localhost:3000/api';  // Base URL without keys in query string
 
-        // Send the key and secret in the headers
+        // Generate signature
+        const signature = generateSignature(lat, lon, secret);
+
+        // Send the key, secret, and signature in the headers
         const homepageResponse = await axios.get(homepageUrl, {
             headers: {
-                'x-api-key': key,        // Custom headers for key and secret
-                'x-api-secret': secret
+                'x-api-key': key,        // API key
+                'x-api-signature': signature,  // HMAC signature
             }
         });
 
