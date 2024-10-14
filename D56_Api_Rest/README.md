@@ -1,60 +1,97 @@
-# D56 - Concevoir / Créer / Consommer des Apis REST
+# Weather API Integration Project
 
-## Project Description
-This project implements a simple REST API that demonstrates different response formats (JSON, XML, CSV) and provides weather information for a given location. It showcases the use of Express.js for API development, implementation of DTOs (Data Transfer Objects) and Value Objects, and follows REST API best practices.
+This project demonstrates the integration of OpenWeatherMap and OpenStreetMap APIs to provide weather and location information.
 
 ## Features
-- Endpoints for JSON, XML, and CSV formats
-- A location weather endpoint that accepts latitude and longitude
-- Implementation of DTOs and Value Objects under a Weather namespace
-- Comprehensive error handling
-- Full test coverage
 
-## Project Structure
-- `app.js`: Main application file
-- `routes/formatRoute.js`: Route definitions
-- `controllers/FormatController.js`: Controller logic
-- `models.js`: Weather namespace with Value Objects and DTO definitions
-- `tests/formatRoute.test.js`: Test suite
+- Fetch current weather data for a given latitude and longitude
+- Retrieve location information for coordinates
+- Combine weather and location data into a single response
+- Support for different output formats (JSON, XML, CSV)
 
-## Setup and Installation
-1. Clone the repository
+## Prerequisites
+
+- Node.js (version 14 or higher)
+- npm (Node Package Manager)
+- OpenWeatherMap API key (free tier)
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/weather-api-integration.git
+   cd weather-api-integration
+   ```
+
 2. Install dependencies:
    ```
    npm install
    ```
 
-## Running the Application
-Start the server:
-```
-npm start
-```
-The server will run on `http://localhost:3000` by default.
+3. Create a `.env` file in the root directory and add your OpenWeatherMap API key:
+   ```
+   OPENWEATHERMAP_API_KEY=your_api_key_here
+   ```
 
-## API Endpoints
-1. `GET /api/v1/format/:format`: Returns data in the specified format (json, xml, or csv)
-2. `GET /api/v1/location-weather`: Returns weather data for a given latitude and longitude
+## Usage
 
-For detailed API documentation, see `API_Documentation.md`.
+1. Start the server:
+   ```
+   npm start
+   ```
+
+2. Access the API endpoints:
+   - Get weather and location data:
+     ```
+     http://localhost:3000/api/v1/location-weather?lat=40.7128&lon=-74.0060
+     ```
+   - Get data in different formats:
+     ```
+     http://localhost:3000/api/v1/format/json
+     http://localhost:3000/api/v1/format/xml
+     http://localhost:3000/api/v1/format/csv
+     ```
 
 ## Running Tests
-Execute the test suite:
+
+To run the integration tests:
+
 ```
 npm test
 ```
 
-## Recent Updates
-- Refactored the FormatController to handle different formats using a single endpoint
-- Implemented a Weather namespace for all models
-- Updated tests to reflect new structure
-- Updated documentation
+## API Documentation
+
+### GET /api/v1/location-weather
+
+Retrieves weather and location data for given coordinates.
+
+Query Parameters:
+- `lat`: Latitude (required)
+- `lon`: Longitude (required)
+
+Example Response:
+```json
+{
+  "locationName": "New York City Hall, 260, Broadway, Lower Manhattan, Civic Center, Manhattan, New York County, City of New York, New York, 10000, United States",
+  "latitude": 40.7128,
+  "longitude": -74.006,
+  "cityName": "City of New York",
+  "country": "United States",
+  "temperature": 11.86,
+  "humidity": 87,
+  "windSpeed": 1.34,
+  "timestamp": "2024-10-14T12:34:56.789Z"
+}
+```
+
+### GET /api/v1/format/:format
+
+Returns a simple "hello world" message in the specified format.
+
+Path Parameters:
+- `format`: Can be "json", "xml", or "csv"
 
 ## Contributing
-Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
 
-## Versioning
-This project uses Semantic Versioning. For the versions available, see the tags on this repository.
-
-## License
-This project is licensed under the MIT License - see the `LICENSE.md` file for details.
-
+Contributions are welcome! Please feel free to submit a Pull Request.
