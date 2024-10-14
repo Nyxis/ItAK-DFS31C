@@ -7,10 +7,11 @@ const API_KEY = 'sample_key';
 const API_SECRET = 'sample_secret';
 
 router.get('/', (req, res) => {
-    const { key, secret } = req.query;
+    const apiKey = req.headers['x-api-key'];        // Get key from headers
+    const apiSecret = req.headers['x-api-secret'];  // Get secret from headers
 
-    // Check for API key and secret in query parameters
-    if (key !== API_KEY || secret !== API_SECRET) {
+    // Check for API key and secret in headers
+    if (apiKey !== API_KEY || apiSecret !== API_SECRET) {
         return res.status(401).json({ error: 'Unauthorized: Invalid API key or secret' });
     }
 
@@ -31,5 +32,4 @@ router.get('/', (req, res) => {
 });
 
 export default router;
-
 

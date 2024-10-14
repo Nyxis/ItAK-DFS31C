@@ -15,8 +15,15 @@ if (!lat || !lon || !key || !secret) {
 // Fetch the homepage and get the WeatherData endpoint
 async function fetchWeather() {
     try {
-        const homepageUrl = `http://localhost:3000/api?key=${key}&secret=${secret}`;
-        const homepageResponse = await axios.get(homepageUrl);
+        const homepageUrl = 'http://localhost:3000/api';  // Base URL without keys in query string
+
+        // Send the key and secret in the headers
+        const homepageResponse = await axios.get(homepageUrl, {
+            headers: {
+                'x-api-key': key,        // Custom headers for key and secret
+                'x-api-secret': secret
+            }
+        });
 
         const weatherEndpoint = homepageResponse.data.availableEndpoints.find(
             endpoint => endpoint.name === 'Get Weather Data'
@@ -26,6 +33,7 @@ async function fetchWeather() {
             throw new Error('Weather Data endpoint not found');
         }
 
+        // Construct the weather data URL with the provided coordinates
         const weatherUrl = weatherEndpoint.link.replace('{latitude}', lat).replace('{longitude}', lon);
         const weatherResponse = await axios.get(weatherUrl);
 
@@ -36,5 +44,4 @@ async function fetchWeather() {
 }
 
 fetchWeather();
-
 
