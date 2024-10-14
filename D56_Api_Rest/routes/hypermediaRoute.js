@@ -17,8 +17,11 @@ function verifySignature(lat, lon, receivedSignature, secret) {
 
     const generatedSignature = crypto.createHmac('sha256', secret).update(data).digest('hex');
     console.log('Generated Signature (Server):', generatedSignature);
+    console.log('Received Signature (Client):', receivedSignature);
+
     return generatedSignature === receivedSignature;
 }
+
 
 router.get('/', (req, res) => {
     const apiKey = req.headers['x-api-key'];
