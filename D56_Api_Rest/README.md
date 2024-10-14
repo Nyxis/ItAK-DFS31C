@@ -126,3 +126,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - OpenWeatherMap for providing weather data
 - OpenStreetMap for geocoding services
+
