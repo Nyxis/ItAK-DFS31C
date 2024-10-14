@@ -1,4 +1,3 @@
-// routes/hypermediaRoute.js
 import express from 'express';
 import crypto from 'crypto';
 
@@ -10,13 +9,14 @@ const API_SECRET = 'sample_secret';
 
 // Function to verify the HMAC signature
 function verifySignature(lat, lon, receivedSignature, secret) {
-    const data = `lat=${lat}&lon=${lon}`;
+    const formattedLat = lat.toFixed(4);
+    const formattedLon = lon.toFixed(4);
+
+    const data = `lat=${formattedLat}&lon=${formattedLon}`;
+    console.log('Server Data for Signature:', data);
+
     const generatedSignature = crypto.createHmac('sha256', secret).update(data).digest('hex');
-
-    // Log the signatures for comparison
-    console.log('Received Signature:', receivedSignature);
-    console.log('Generated Signature:', generatedSignature);
-
+    console.log('Generated Signature (Server):', generatedSignature);
     return generatedSignature === receivedSignature;
 }
 
@@ -24,7 +24,6 @@ router.get('/', (req, res) => {
     const apiKey = req.headers['x-api-key'];
     const apiSignature = req.headers['x-api-signature'];
 
-    // Hardcoded sample location (could be different in real use cases)
     const lat = 40.7128;
     const lon = -74.0060;
 
@@ -38,7 +37,7 @@ router.get('/', (req, res) => {
         return res.status(401).json({ error: 'Unauthorized: Invalid signature' });
     }
 
-    // Hypermedia links (currently only the WeatherData endpoint)
+    // Return hypermedia links or the necessary data
     const hypermediaLinks = {
         version: 'v1',
         availableEndpoints: [
@@ -55,4 +54,5 @@ router.get('/', (req, res) => {
 });
 
 export default router;
+
 

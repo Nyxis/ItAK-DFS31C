@@ -1,6 +1,6 @@
 import axios from 'axios';
-import dotenv from 'dotenv';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -15,19 +15,17 @@ if (!lat || !lon || !key || !secret) {
 
 // Function to generate the HMAC signature
 function generateSignature(lat, lon, secret) {
-    const data = `lat=${lat}&lon=${lon}`; // Data to hash (could include method, path, etc.)
+    const data = `lat=${lat}&lon=${lon}`; // Data to hash
+    console.log('Client Data for Signature:', data);  // Log the data string
     const signature = crypto.createHmac('sha256', secret).update(data).digest('hex');
-
-    // Log the generated signature
-    console.log('Generated Signature:', signature);
-
+    console.log('Generated Signature (Client):', signature);
     return signature;
 }
 
 // Fetch the homepage and get the WeatherData endpoint
 async function fetchWeather() {
     try {
-        const homepageUrl = 'http://localhost:3000/api';  // Base URL without keys in query string
+        const homepageUrl = 'http://localhost:3000/api';  // Base URL
 
         // Generate signature
         const signature = generateSignature(lat, lon, secret);
@@ -40,19 +38,8 @@ async function fetchWeather() {
             }
         });
 
-        const weatherEndpoint = homepageResponse.data.availableEndpoints.find(
-            endpoint => endpoint.name === 'Get Weather Data'
-        );
+        console.log('Homepage Response:', homepageResponse.data);
 
-        if (!weatherEndpoint) {
-            throw new Error('Weather Data endpoint not found');
-        }
-
-        // Construct the weather data URL with the provided coordinates
-        const weatherUrl = weatherEndpoint.link.replace('{latitude}', lat).replace('{longitude}', lon);
-        const weatherResponse = await axios.get(weatherUrl);
-
-        console.log('Weather Data:', weatherResponse.data);
     } catch (error) {
         console.error('Error fetching weather data:', error.message);
     }
