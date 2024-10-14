@@ -1,6 +1,8 @@
+// controllers/FormatController.js
 import Weather from '../models.js';
 import OpenStreetMapClient from '../services/OpenStreetMapClient.js';
 import OpenWeatherMapClient from '../services/OpenWeatherMapClient.js';
+import LocationWeatherBuilder from '../builders/LocationWeatherBuilder.js';
 
 class FormatController {
     constructor(apiKey) {
@@ -47,41 +49,19 @@ class FormatController {
                 this.openWeatherMapClient.getWeatherData(latFloat, lonFloat)
             ]);
 
-            console.log('Location Data:', JSON.stringify(locationData, null, 2));
-            console.log('Weather Data:', JSON.stringify(weatherData, null, 2));
+            const builder = new LocationWeatherBuilder();
+            const locationWeather = builder
+                .setLocationName(locationData.display_name)
+                .setCoordinates(latFloat, lonFloat)
+                .setCityName(locationData.address?.city || 'Unknown')
+                .setCountry(locationData.address?.country || 'Unknown')
+                .setWeatherData(weatherData.main.temp, weatherData.main.humidity, weatherData.wind.speed)
+                .build();
 
-            const gps = new Weather.GPS(latFloat, lonFloat);
-            const city = new Weather.City(locationData.address?.city || locationData.address?.town || locationData.address?.village || 'Unknown');
-            const location = new Weather.Location(locationData.display_name, gps, city, locationData.address?.country || 'Unknown');
-
-            const weather = new Weather.WeatherData(
-                weatherData.main.temp,
-                weatherData.main.humidity,
-                weatherData.wind.speed
-            );
-
-            const locationWeatherData = new Weather.LocationWeatherData(location, weather);
-
-            res.status(200).json(locationWeatherData);
+            res.status(200).json(locationWeather);
         } catch (error) {
             console.error('Error fetching location or weather data:', error);
-
-            let errorMessage = 'Failed to fetch location or weather data';
-            let statusCode = 500;
-
-            if (error.response) {
-                statusCode = error.response.status;
-                errorMessage += `: ${error.response.data.message || error.response.statusText}`;
-            } else if (error.request) {
-                errorMessage += ': No response received from the server';
-            } else {
-                errorMessage += `: ${error.message}`;
-            }
-
-            res.status(statusCode).json({
-                error: errorMessage,
-                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-            });
+            res.status(500).json({ error: 'Failed to fetch location or weather data' });
         }
     }
 }
