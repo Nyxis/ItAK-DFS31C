@@ -13,26 +13,32 @@ http://localhost:3000/api/v1
 
 ## Endpoints
 
-1. [GET /format/json](#1-get-formatjson)
-2. [GET /format/xml](#2-get-formatxml)
-3. [GET /format/csv](#3-get-formatcsv)
-4. [GET /location-weather](#4-get-location-weather)
+1. [GET /format/:format](#1-get-formatformat)
+2. [GET /location-weather](#2-get-location-weather)
 
 ---
 
-### 1. GET /format/json
+### 1. GET /format/:format
 
-Returns a simple JSON object.
+Returns a simple object in the specified format.
 
 #### Request
 
 \`\`\`
-GET /format/json
+GET /format/:format
 \`\`\`
+
+Where `:format` can be one of:
+- `json`
+- `xml`
+- `csv`
 
 #### Response
 
 - **Status Code**: 200 OK
+- **Content-Type**: Depends on the requested format
+
+##### JSON Format
 - **Content-Type**: application/json
 
 \`\`\`json
@@ -41,42 +47,14 @@ GET /format/json
 }
 \`\`\`
 
----
-
-### 2. GET /format/xml
-
-Returns a simple XML structure.
-
-#### Request
-
-\`\`\`
-GET /format/xml
-\`\`\`
-
-#### Response
-
-- **Status Code**: 200 OK
+##### XML Format
 - **Content-Type**: application/xml
 
 \`\`\`xml
 <hello>world</hello>
 \`\`\`
 
----
-
-### 3. GET /format/csv
-
-Returns a simple CSV format.
-
-#### Request
-
-\`\`\`
-GET /format/csv
-\`\`\`
-
-#### Response
-
-- **Status Code**: 200 OK
+##### CSV Format
 - **Content-Type**: text/csv
 
 \`\`\`
@@ -84,9 +62,22 @@ hello
 world
 \`\`\`
 
+#### Error Response
+
+If an unsupported format is requested:
+
+- **Status Code**: 400 Bad Request
+- **Content-Type**: application/json
+
+\`\`\`json
+{
+  "error": "Unsupported format"
+}
+\`\`\`
+
 ---
 
-### 4. GET /location-weather
+### 2. GET /location-weather
 
 Returns weather information for a given location.
 
@@ -154,8 +145,27 @@ GET /location-weather?lat={latitude}&lon={longitude}
 
 ## Data Models
 
-### LocationWeatherData (DTO)
+All models are now under the `Weather` namespace.
 
+### Weather.GPS
+- `latitude`: float
+- `longitude`: float
+
+### Weather.City
+- `name`: string
+
+### Weather.Location
+- `name`: string
+- `coordinates`: Weather.GPS
+- `city`: Weather.City
+- `country`: string
+
+### Weather.WeatherData
+- `temperature`: float
+- `humidity`: float
+- `windSpeed`: float
+
+### Weather.LocationWeatherData (DTO)
 - `locationName`: string
 - `latitude`: float
 - `longitude`: float
@@ -176,74 +186,72 @@ This API follows Semantic Versioning. The current version is v1. Any breaking ch
 # app.js
 
 ```js
-const express = require('express');
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import express from 'express';
+import formatRoute from './routes/formatRoute.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '.env') });
+
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-// Import our route
-const formatRoute = require('./routes/formatRoute');
-
-// Use the route
 app.use('/api/v1', formatRoute);
 
-let server;
-if (process.env.NODE_ENV !== 'test') {
-    server = app.listen(port, () => {
+function startServer() {
+    return app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
     });
 }
 
-// Function to close the server
-const closeServer = () => {
-    return new Promise((resolve) => {
-        if (server) {
-            server.close(() => {
-                resolve();
-            });
-        } else {
-            resolve();
-        }
-    });
-};
+export { app, startServer };
 
-module.exports = { app, closeServer };  // Export both app and closeServer function
 
 ```
 
 # controllers/FormatController.js
 
 ```js
-const { GPS, City, Location, WeatherData, LocationWeatherData } = require('../models');
+import Weather from '../models.js';
+import OpenStreetMapClient from '../services/OpenStreetMapClient.js';
+import OpenWeatherMapClient from '../services/OpenWeatherMapClient.js';
 
 class FormatController {
-    static getJsonFormat(req, res) {
-        res.status(200).json({ hello: 'world' });
+    constructor() {
+        console.log('API Key used in FormatController:', process.env.OPENWEATHERMAP_API_KEY);
+        this.openStreetMapClient = new OpenStreetMapClient();
+        this.openWeatherMapClient = new OpenWeatherMapClient(process.env.OPENWEATHERMAP_API_KEY);
     }
 
-    static getXmlFormat(req, res) {
-        res.status(200).set('Content-Type', 'application/xml').send('<hello>world</hello>');
+    static getFormat(req, res) {
+        const format = req.params.format;
+        const formatHandlers = {
+            'json': () => res.json({ hello: 'world' }),
+            'xml': () => res.type('application/xml').send('<hello>world</hello>'),
+            'csv': () => res.type('text/csv').send('hello\nworld\n')
+        };
+
+        if (formatHandlers.hasOwnProperty(format)) {
+            formatHandlers[format]();
+        } else {
+            res.status(400).json({ error: 'Unsupported format' });
+        }
     }
 
-    static getCsvFormat(req, res) {
-        res.status(200).set('Content-Type', 'text/csv').send('hello\nworld\n');
-    }
-
-    static getLocationWeather(req, res) {
+    async getLocationWeather(req, res) {
         const { lat, lon } = req.query;
 
-        if (!lat && !lon) {
+        if (!lat || !lon) {
             return res.status(400).json({ error: 'Both latitude and longitude are required' });
         }
-        if (!lat) {
-            return res.status(400).json({ error: 'Latitude is required' });
-        }
-        if (!lon) {
-            return res.status(400).json({ error: 'Longitude is required' });
-        }
 
-        // Validate latitude and longitude
         const latFloat = parseFloat(lat);
         const lonFloat = parseFloat(lon);
+
         if (isNaN(latFloat) || latFloat < -90 || latFloat > 90) {
             return res.status(400).json({ error: 'Invalid latitude. Must be a number between -90 and 90.' });
         }
@@ -251,20 +259,50 @@ class FormatController {
             return res.status(400).json({ error: 'Invalid longitude. Must be a number between -180 and 180.' });
         }
 
-        // Here you would typically fetch real data from external APIs
-        // For this example, we'll use mock data
-        const gps = new GPS(latFloat, lonFloat);
-        const city = new City('MockCity');
-        const location = new Location('Mock Location', gps, city, 'MockCountry');
-        const weatherData = new WeatherData(25.5, 60, 10);
+        try {
+            const locationData = await this.openStreetMapClient.getLocationInfo(latFloat, lonFloat);
+            const weatherData = await this.openWeatherMapClient.getWeatherData(latFloat, lonFloat);
 
-        const locationWeatherData = new LocationWeatherData(location, weatherData);
+            const gps = new Weather.GPS(latFloat, lonFloat);
+            const city = new Weather.City(locationData.address.city || locationData.address.town || locationData.address.village);
+            const location = new Weather.Location(locationData.display_name, gps, city, locationData.address.country);
+            const weather = new Weather.WeatherData(
+                weatherData.main.temp,
+                weatherData.main.humidity,
+                weatherData.wind.speed
+            );
 
-        res.status(200).json(locationWeatherData);
+            const locationWeatherData = new Weather.LocationWeatherData(location, weather);
+
+            res.status(200).json(locationWeatherData);
+        } catch (error) {
+            console.error('Error fetching location or weather data:', error);
+
+            let errorMessage = 'Failed to fetch location or weather data';
+            let statusCode = 500;
+
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                statusCode = error.response.status;
+                errorMessage += `: ${error.response.data.message || error.response.statusText}`;
+            } else if (error.request) {
+                // The request was made but no response was received
+                errorMessage += ': No response received from the server';
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                errorMessage += `: ${error.message}`;
+            }
+
+            res.status(statusCode).json({
+                error: errorMessage,
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
+        }
     }
 }
 
-module.exports = FormatController;
+export default FormatController;
 
 
 ```
@@ -272,37 +310,39 @@ module.exports = FormatController;
 # models.js
 
 ```js
-class GPS {
+const Weather = {};
+
+Weather.GPS = class GPS {
     constructor(latitude, longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }
-}
+};
 
-class City {
+Weather.City = class City {
     constructor(name) {
         this.name = name;
     }
-}
+};
 
-class Location {
+Weather.Location = class Location {
     constructor(name, coordinates, city, country) {
         this.name = name;
         this.coordinates = coordinates;
         this.city = city;
         this.country = country;
     }
-}
+};
 
-class WeatherData {
+Weather.WeatherData = class WeatherData {
     constructor(temperature, humidity, windSpeed) {
         this.temperature = temperature;
         this.humidity = humidity;
         this.windSpeed = windSpeed;
     }
-}
+};
 
-class LocationWeatherData {
+Weather.LocationWeatherData = class LocationWeatherData {
     constructor(location, weatherData) {
         this.locationName = location.name;
         this.latitude = location.coordinates.latitude;
@@ -314,15 +354,10 @@ class LocationWeatherData {
         this.windSpeed = weatherData.windSpeed;
         this.timestamp = new Date().toISOString();
     }
-}
-
-module.exports = {
-    GPS,
-    City,
-    Location,
-    WeatherData,
-    LocationWeatherData
 };
+
+export default Weather;
+
 
 ```
 
@@ -333,22 +368,25 @@ module.exports = {
   "name": "api-format-demo",
   "version": "1.0.0",
   "main": "app.js",
+  "type": "module",
   "scripts": {
     "start": "node app.js",
-    "test": "jest"
+    "test": "node tests/integration.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "A simple API that returns data in different formats",
+  "description": "A simple API that returns data in different formats and fetches weather data",
   "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
     "express": "^4.21.1"
   },
   "devDependencies": {
-    "jest": "^27.5.1",
     "supertest": "^6.3.4"
   }
 }
+
 
 ```
 
@@ -357,137 +395,149 @@ module.exports = {
 ```md
 # D56 - Concevoir / Créer / Consommer des Apis REST
 
-## Hello world et multi-format
+## Project Description
+This project implements a simple REST API that demonstrates different response formats (JSON, XML, CSV) and provides weather information for a given location. It showcases the use of Express.js for API development, implementation of DTOs (Data Transfer Objects) and Value Objects, and follows REST API best practices.
 
-Les API HTTP (aussi appelées API REST) offrent la possibilité au client de l'API (aussi appelé consommateur) de choisir son format de sortie via les headers de requêtes.
+## Features
+- Endpoints for JSON, XML, and CSV formats
+- A location weather endpoint that accepts latitude and longitude
+- Implementation of DTOs and Value Objects under a Weather namespace
+- Comprehensive error handling
+- Full test coverage
 
-À l'aide du langage et du framework de votre choix, créez un endpoint qui renvoie la map \`\`\`["hello" => "world"]\`\`\` au format donné en entrée.
+## Project Structure
+- `app.js`: Main application file
+- `routes/formatRoute.js`: Route definitions
+- `controllers/FormatController.js`: Controller logic
+- `models.js`: Weather namespace with Value Objects and DTO definitions
+- `tests/formatRoute.test.js`: Test suite
 
-Dans un premier temps, ne proposez que les formats json, csv et xml; il devront être sélectionné par votre code via le header HTTP standard.
-
-Pour cet exercice et les suivants, vous veillerez à respecter les principes SOLID, ainsi que les bonnes pratiques des Apis REST vues en cours, sur le versioning sémantique et la documentation.
-
-## DTO et Value objects
-
-Nous allons exposer des données cartographiques recoupées avec des données météo en utilisant des APIs externes.
-
-Commencez par créer des modèles représentant les notions suivantes :
-- Un lieu (nom, coordonnées GPS, ville, pays)
-- Les données météo à un temps donné (température, humidité, vitesse du vent)
-
-Utilisez une structure objet complète avec des Value Objects, pour la ville par exemple.
-
-Créez maintenant un DTO pour matérialiser les informations recoupées sur les lieux et la météo. Un DTO est un objet simple, contenant les données "à plat" qui vont ensuite être exposées via les Apis REST.
-Le DTO prendra en paramètre le lieu et la donnée météo.
-
-__Tips__ : Appelez votre DTO LocationWeatherData. Il est relativement commun de suffixer les DTO avec "Data".
-
-
-# Projet d'API de Format (Amirofcodes)
-
-## Description
-Ce projet implémente une API simple qui renvoie des données dans différents formats (JSON, XML, CSV) et fournit des informations météorologiques pour un lieu donné. Il démontre l'utilisation d'Express.js pour le développement d'API, ainsi que l'implémentation de DTOs (Objets de Transfert de Données) et d'Objets Valeur.
-
-## Structure du Projet
-- `app.js`: Fichier principal de l'application
-- `routes/formatRoute.js`: Définitions des routes
-- `controllers/FormatController.js`: Logique du contrôleur
-- `models.js`: Définitions des Objets Valeur et DTO
-- `tests/formatRoute.test.js`: Suite de tests
-- `API_Documentation.md`: Documentation de l'API
-
-## Configuration et Installation
-1. Clonez le dépôt
-2. Installez les dépendances :
+## Setup and Installation
+1. Clone the repository
+2. Install dependencies:
    \`\`\`
    npm install
    \`\`\`
 
-## Exécution de l'Application
-Démarrez le serveur :
+## Running the Application
+Start the server:
 \`\`\`
 npm start
 \`\`\`
-Le serveur fonctionnera par défaut sur `http://localhost:3000`.
+The server will run on `http://localhost:3000` by default.
 
-## Points de Terminaison de l'API
-1. `GET /api/v1/format/json`: Renvoie des données JSON
-2. `GET /api/v1/format/xml`: Renvoie des données XML
-3. `GET /api/v1/format/csv`: Renvoie des données CSV
-4. `GET /api/v1/location-weather`: Renvoie des données météorologiques pour un lieu
+## API Endpoints
+1. `GET /api/v1/format/:format`: Returns data in the specified format (json, xml, or csv)
+2. `GET /api/v1/location-weather`: Returns weather data for a given latitude and longitude
 
-Pour une documentation détaillée de l'API, consultez `API_Documentation.md`.
+For detailed API documentation, see `API_Documentation.md`.
 
-## Utilisation de l'API Météo de Localisation
-Pour obtenir des données météorologiques pour un lieu, faites une requête GET à :
-\`\`\`
-/api/v1/location-weather?lat={latitude}&lon={longitude}
-\`\`\`
-Remplacez `{latitude}` et `{longitude}` par les coordonnées réelles.
-
-Exemple d'une requête correcte :
-\`\`\`
-GET /api/v1/location-weather?lat=40.7128&lon=-74.0060
-\`\`\`
-
-Note :
-- La latitude et la longitude doivent toutes deux être fournies en tant que paramètres de requête.
-- La latitude doit être comprise entre -90 et 90.
-- La longitude doit être comprise entre -180 et 180.
-
-Si des paramètres sont manquants ou invalides, vous recevrez un message d'erreur approprié.
-
-## Modèles de Données
-- `GPS`: Objet Valeur pour les coordonnées GPS
-- `City`: Objet Valeur pour les informations de la ville
-- `Location`: Objet Valeur combinant nom, GPS, ville et pays
-- `WeatherData`: Objet Valeur pour les informations météorologiques
-- `LocationWeatherData`: DTO combinant Location et WeatherData
-
-## Exécution des Tests
-Exécutez la suite de tests :
+## Running Tests
+Execute the test suite:
 \`\`\`
 npm test
 \`\`\`
 
-Les tests couvrent :
-- Les points de terminaison des formats JSON, XML et CSV
-- La fonctionnalité de l'API Météo de Localisation
-- La gestion des erreurs pour les paramètres manquants et invalides
+## Recent Updates
+- Refactored the FormatController to handle different formats using a single endpoint
+- Implemented a Weather namespace for all models
+- Updated tests to reflect new structure
+- Updated documentation
 
-## Résultats des Tests
-Les 9 tests passent avec succès, couvrant :
-- Les points de terminaison de base (JSON, XML, CSV)
-- La récupération réussie des données météorologiques
-- La gestion des erreurs pour latitude et/ou longitude manquantes
-- La gestion des erreurs pour des valeurs de latitude ou longitude invalides
+## Contributing
+Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
 
-## Développement
-- Le projet utilise Express.js comme framework web.
-- Jest est utilisé pour les tests.
-- Les DTOs et les Objets Valeur sont implémentés dans `models.js`.
+## Versioning
+This project uses Semantic Versioning. For the versions available, see the tags on this repository.
 
-## Améliorations Futures
-- Intégrer de vraies APIs externes pour les données météorologiques et de localisation.
-- Ajouter une gestion d'erreurs plus complète et une validation des entrées.
-- Implémenter une mise en cache pour améliorer les performances.
-- Ajouter des tests d'intégration pour les flux de bout en bout.
+## License
+This project is licensed under the MIT License - see the `LICENSE.md` file for details.
+
 
 ```
 
 # routes/formatRoute.js
 
 ```js
-const express = require('express');
+import express from 'express';
+import FormatController from '../controllers/FormatController.js';
+
 const router = express.Router();
-const FormatController = require('../controllers/FormatController');
+const formatController = new FormatController();
 
-router.get('/format/json', FormatController.getJsonFormat);
-router.get('/format/xml', FormatController.getXmlFormat);
-router.get('/format/csv', FormatController.getCsvFormat);
-router.get('/location-weather', FormatController.getLocationWeather);
+router.get('/format/:format', FormatController.getFormat);
+router.get('/location-weather', (req, res) => formatController.getLocationWeather(req, res));
 
-module.exports = router;
+export default router;
+
+
+```
+
+# services/OpenStreetMapClient.js
+
+```js
+import axios from 'axios';
+
+class OpenStreetMapClient {
+    constructor() {
+        this.baseURL = 'https://nominatim.openstreetmap.org';
+    }
+
+    async getLocationInfo(lat, lon) {
+        try {
+            const response = await axios.get(`${this.baseURL}/reverse`, {
+                params: {
+                    lat: lat,
+                    lon: lon,
+                    format: 'json'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching location data:', error);
+            throw new Error('Failed to fetch location data');
+        }
+    }
+}
+
+export default OpenStreetMapClient;
+
+
+```
+
+# services/OpenWeatherMapClient.js
+
+```js
+import axios from 'axios';
+
+class OpenWeatherMapClient {
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+        this.baseURL = 'https://api.openweathermap.org/data/2.5';
+    }
+
+    async getWeatherData(lat, lon) {
+        try {
+            console.log(`Making request with API key: ${this.apiKey}`);
+            const response = await axios.get(`${this.baseURL}/weather`, {
+                params: {
+                    lat: lat,
+                    lon: lon,
+                    appid: this.apiKey,
+                    units: 'metric'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching weather data:', error.response ? error.response.data : error.message);
+            console.error('Full error object:', JSON.stringify(error, null, 2));
+            throw new Error('Failed to fetch weather data');
+        }
+    }
+}
+
+export default OpenWeatherMapClient;
+
 
 ```
 
@@ -496,10 +546,19 @@ module.exports = router;
 ```js
 const request = require('supertest');
 const { app, closeServer } = require('../app');
+const OpenStreetMapClient = require('../services/OpenStreetMapClient');
+const OpenWeatherMapClient = require('../services/OpenWeatherMapClient');
+
+jest.mock('../services/OpenStreetMapClient');
+jest.mock('../services/OpenWeatherMapClient');
 
 describe('Format API', () => {
     afterAll(async () => {
         await closeServer();
+    });
+
+    beforeEach(() => {
+        jest.resetAllMocks();
     });
 
     describe('Basic Format Endpoints', () => {
@@ -523,33 +582,48 @@ describe('Format API', () => {
             expect(res.headers['content-type']).toContain('text/csv');
             expect(res.text).toBe('hello\nworld\n');
         });
+
+        it('should return 400 for unsupported format', async () => {
+            const res = await request(app).get('/api/v1/format/unsupported');
+            expect(res.statusCode).toBe(400);
+            expect(res.body).toEqual({ error: 'Unsupported format' });
+        });
     });
 
     describe('Location Weather API', () => {
         it('should return location weather data in a flat structure', async () => {
+            OpenStreetMapClient.prototype.getLocationInfo.mockResolvedValue({
+                display_name: 'New York City',
+                address: {
+                    city: 'New York',
+                    country: 'United States'
+                }
+            });
+
+            OpenWeatherMapClient.prototype.getWeatherData.mockResolvedValue({
+                main: {
+                    temp: 20,
+                    humidity: 65
+                },
+                wind: {
+                    speed: 5
+                }
+            });
+
             const res = await request(app).get('/api/v1/location-weather?lat=40.7128&lon=-74.0060');
             expect(res.statusCode).toBe(200);
             expect(res.headers['content-type']).toContain('application/json');
-            expect(res.body).toHaveProperty('locationName');
-            expect(res.body).toHaveProperty('latitude');
-            expect(res.body).toHaveProperty('longitude');
-            expect(res.body).toHaveProperty('cityName');
-            expect(res.body).toHaveProperty('country');
-            expect(res.body).toHaveProperty('temperature');
-            expect(res.body).toHaveProperty('humidity');
-            expect(res.body).toHaveProperty('windSpeed');
+            expect(res.body).toMatchObject({
+                locationName: 'New York City',
+                latitude: 40.7128,
+                longitude: -74.0060,
+                cityName: 'New York',
+                country: 'United States',
+                temperature: 20,
+                humidity: 65,
+                windSpeed: 5
+            });
             expect(res.body).toHaveProperty('timestamp');
-
-            // Check specific values
-            expect(res.body.latitude).toBe(40.7128);
-            expect(res.body.longitude).toBe(-74.0060);
-            expect(typeof res.body.locationName).toBe('string');
-            expect(typeof res.body.cityName).toBe('string');
-            expect(typeof res.body.country).toBe('string');
-            expect(typeof res.body.temperature).toBe('number');
-            expect(typeof res.body.humidity).toBe('number');
-            expect(typeof res.body.windSpeed).toBe('number');
-            expect(typeof res.body.timestamp).toBe('string');
         });
 
         it('should return 400 if both latitude and longitude are missing', async () => {
@@ -563,14 +637,14 @@ describe('Format API', () => {
             const res = await request(app).get('/api/v1/location-weather?lon=-74.0060');
             expect(res.statusCode).toBe(400);
             expect(res.body).toHaveProperty('error');
-            expect(res.body.error).toBe('Latitude is required');
+            expect(res.body.error).toBe('Both latitude and longitude are required');
         });
 
         it('should return 400 if longitude is missing', async () => {
             const res = await request(app).get('/api/v1/location-weather?lat=40.7128');
             expect(res.statusCode).toBe(400);
             expect(res.body).toHaveProperty('error');
-            expect(res.body.error).toBe('Longitude is required');
+            expect(res.body.error).toBe('Both latitude and longitude are required');
         });
 
         it('should return 400 if latitude is invalid', async () => {
@@ -586,8 +660,100 @@ describe('Format API', () => {
             expect(res.body).toHaveProperty('error');
             expect(res.body.error).toBe('Invalid longitude. Must be a number between -180 and 180.');
         });
+
+        it('should return 500 if API calls fail', async () => {
+            OpenStreetMapClient.prototype.getLocationInfo.mockRejectedValue(new Error('API error'));
+
+            const res = await request(app).get('/api/v1/location-weather?lat=40.7128&lon=-74.0060');
+            expect(res.statusCode).toBe(500);
+            expect(res.body).toHaveProperty('error');
+            expect(res.body.error).toBe('Failed to fetch location or weather data');
+        });
     });
 });
+
+
+```
+
+# tests/integration.js
+
+```js
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import assert from 'assert';
+import axios from 'axios';
+import { app } from '../app.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '..', '.env') });
+
+console.log('OPENWEATHERMAP_API_KEY:', process.env.OPENWEATHERMAP_API_KEY);
+
+const TEST_PORT = 3001;
+const BASE_URL = `http://localhost:${TEST_PORT}/api/v1`;
+
+async function runTests() {
+    let server;
+
+    try {
+        server = app.listen(TEST_PORT, () => console.log(`Test server running on port ${TEST_PORT}`));
+
+        // Test JSON format
+        const jsonResponse = await axios.get(`${BASE_URL}/format/json`);
+        assert.strictEqual(jsonResponse.status, 200);
+        assert.strictEqual(jsonResponse.headers['content-type'], 'application/json; charset=utf-8');
+        assert.deepStrictEqual(jsonResponse.data, { hello: 'world' });
+
+        // Test XML format
+        const xmlResponse = await axios.get(`${BASE_URL}/format/xml`);
+        assert.strictEqual(xmlResponse.status, 200);
+        assert.strictEqual(xmlResponse.headers['content-type'], 'application/xml; charset=utf-8');
+        assert.strictEqual(xmlResponse.data, '<hello>world</hello>');
+
+        // Test CSV format
+        const csvResponse = await axios.get(`${BASE_URL}/format/csv`);
+        assert.strictEqual(csvResponse.status, 200);
+        assert.strictEqual(csvResponse.headers['content-type'], 'text/csv; charset=utf-8');
+        assert.strictEqual(csvResponse.data, 'hello\nworld\n');
+
+        // Test unsupported format
+        try {
+            await axios.get(`${BASE_URL}/format/unsupported`);
+        } catch (error) {
+            assert.strictEqual(error.response.status, 400);
+            assert.deepStrictEqual(error.response.data, { error: 'Unsupported format' });
+        }
+
+        // Test location weather API
+        const weatherResponse = await axios.get(`${BASE_URL}/location-weather?lat=40.7128&lon=-74.0060`);
+        assert.strictEqual(weatherResponse.status, 200);
+        assert.strictEqual(weatherResponse.headers['content-type'], 'application/json; charset=utf-8');
+        assert(weatherResponse.data.locationName);
+        assert.strictEqual(weatherResponse.data.latitude, 40.7128);
+        assert.strictEqual(weatherResponse.data.longitude, -74.0060);
+        assert(weatherResponse.data.cityName);
+        assert(weatherResponse.data.country);
+        assert(typeof weatherResponse.data.temperature === 'number');
+        assert(typeof weatherResponse.data.humidity === 'number');
+        assert(typeof weatherResponse.data.windSpeed === 'number');
+        assert(weatherResponse.data.timestamp);
+
+        console.log('All tests passed successfully!');
+    } catch (error) {
+        console.error('Test failed:', error.message);
+    } finally {
+        if (server) {
+            server.close(() => {
+                console.log('Test server closed');
+            });
+        }
+    }
+}
+
+runTests();
 
 
 ```

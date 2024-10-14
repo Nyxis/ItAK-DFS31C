@@ -2,19 +2,23 @@
   "name": "api-format-demo",
   "version": "1.0.0",
   "main": "app.js",
+  "type": "module",
   "scripts": {
     "start": "node app.js",
-    "test": "jest"
+    "dev": "nodemon app.js",
+    "test": "node tests/integration.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "A simple API that returns data in different formats",
+  "description": "A simple API that returns data in different formats and fetches weather data",
   "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
     "express": "^4.21.1"
   },
   "devDependencies": {
-    "jest": "^27.5.1",
+    "nodemon": "^3.1.7",
     "supertest": "^6.3.4"
   }
 }

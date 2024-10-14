@@ -1,9 +1,13 @@
-const express = require('express');
-const router = express.Router();
-const FormatController = require('../controllers/FormatController');
+import express from 'express';
+import FormatController from '../controllers/FormatController.js';
 
-router.get('/format/:format', FormatController.getFormat);
-router.get('/location-weather', FormatController.getLocationWeather);
+export default function(apiKey) {
+    const router = express.Router();
+    const formatController = new FormatController(apiKey);
 
-module.exports = router;
+    router.get('/format/:format', FormatController.getFormat);
+    router.get('/location-weather', (req, res) => formatController.getLocationWeather(req, res));
+
+    return router;
+}
 

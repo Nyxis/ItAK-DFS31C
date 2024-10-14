@@ -44,5 +44,5 @@ Weather.LocationWeatherData = class LocationWeatherData {
     }
 };
 
-module.exports = Weather;
+export default Weather;
 

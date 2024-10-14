@@ -1,6 +1,14 @@
-const Weather = require('../models');
+import Weather from '../models.js';
+import OpenStreetMapClient from '../services/OpenStreetMapClient.js';
+import OpenWeatherMapClient from '../services/OpenWeatherMapClient.js';
 
 class FormatController {
+    constructor(apiKey) {
+        console.log('API Key used in FormatController:', apiKey);
+        this.openStreetMapClient = new OpenStreetMapClient();
+        this.openWeatherMapClient = new OpenWeatherMapClient(apiKey);
+    }
+
     static getFormat(req, res) {
         const format = req.params.format;
         const formatHandlers = {
@@ -16,22 +24,16 @@ class FormatController {
         }
     }
 
-    static getLocationWeather(req, res) {
+    async getLocationWeather(req, res) {
         const { lat, lon } = req.query;
 
-        if (!lat && !lon) {
+        if (!lat || !lon) {
             return res.status(400).json({ error: 'Both latitude and longitude are required' });
         }
-        if (!lat) {
-            return res.status(400).json({ error: 'Latitude is required' });
-        }
-        if (!lon) {
-            return res.status(400).json({ error: 'Longitude is required' });
-        }
 
-        // Validate latitude and longitude
         const latFloat = parseFloat(lat);
         const lonFloat = parseFloat(lon);
+
         if (isNaN(latFloat) || latFloat < -90 || latFloat > 90) {
             return res.status(400).json({ error: 'Invalid latitude. Must be a number between -90 and 90.' });
         }
@@ -39,18 +41,50 @@ class FormatController {
             return res.status(400).json({ error: 'Invalid longitude. Must be a number between -180 and 180.' });
         }
 
-        // Here you would typically fetch real data from external APIs
-        // For this example, we'll use mock data
-        const gps = new Weather.GPS(latFloat, lonFloat);
-        const city = new Weather.City('MockCity');
-        const location = new Weather.Location('Mock Location', gps, city, 'MockCountry');
-        const weatherData = new Weather.WeatherData(25.5, 60, 10);
+        try {
+            const [locationData, weatherData] = await Promise.all([
+                this.openStreetMapClient.getLocationInfo(latFloat, lonFloat),
+                this.openWeatherMapClient.getWeatherData(latFloat, lonFloat)
+            ]);
 
-        const locationWeatherData = new Weather.LocationWeatherData(location, weatherData);
+            console.log('Location Data:', JSON.stringify(locationData, null, 2));
+            console.log('Weather Data:', JSON.stringify(weatherData, null, 2));
 
-        res.status(200).json(locationWeatherData);
+            const gps = new Weather.GPS(latFloat, lonFloat);
+            const city = new Weather.City(locationData.address?.city || locationData.address?.town || locationData.address?.village || 'Unknown');
+            const location = new Weather.Location(locationData.display_name, gps, city, locationData.address?.country || 'Unknown');
+
+            const weather = new Weather.WeatherData(
+                weatherData.main.temp,
+                weatherData.main.humidity,
+                weatherData.wind.speed
+            );
+
+            const locationWeatherData = new Weather.LocationWeatherData(location, weather);
+
+            res.status(200).json(locationWeatherData);
+        } catch (error) {
+            console.error('Error fetching location or weather data:', error);
+
+            let errorMessage = 'Failed to fetch location or weather data';
+            let statusCode = 500;
+
+            if (error.response) {
+                statusCode = error.response.status;
+                errorMessage += `: ${error.response.data.message || error.response.statusText}`;
+            } else if (error.request) {
+                errorMessage += ': No response received from the server';
+            } else {
+                errorMessage += `: ${error.message}`;
+            }
+
+            res.status(statusCode).json({
+                error: errorMessage,
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
+        }
     }
 }
 
-module.exports = FormatController;
+export default FormatController;
 

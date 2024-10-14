@@ -1,31 +1,24 @@
-const express = require('express');
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import express from 'express';
+import formatRoute from './routes/formatRoute.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '.env') });
+
+console.log('OPENWEATHERMAP_API_KEY:', process.env.OPENWEATHERMAP_API_KEY);
+
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-// Import our route
-const formatRoute = require('./routes/formatRoute');
+app.use('/api/v1', formatRoute(process.env.OPENWEATHERMAP_API_KEY));
 
-// Use the route
-app.use('/api/v1', formatRoute);
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
 
-let server;
-if (process.env.NODE_ENV !== 'test') {
-    server = app.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
-    });
-}
+export { app };
 
-// Function to close the server
-const closeServer = () => {
-    return new Promise((resolve) => {
-        if (server) {
-            server.close(() => {
-                resolve();
-            });
-        } else {
-            resolve();
-        }
-    });
-};
-
-module.exports = { app, closeServer };  // Export both app and closeServer function
