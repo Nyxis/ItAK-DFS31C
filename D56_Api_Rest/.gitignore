@@ -1,0 +1,84 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dossier dépendances
+/node_modules
+
+# Environnements
+.env
+.env.local
+.env.*.local
+
+# Production build
+/dist
+/build
+
+# Système
+.DS_Store
+Thumbs.db
+
+# IDEs/Editeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# Dossiers temporaires
+/tmp
+/.cache
+
+# Uploads et fichiers de stockage temporaires
+/uploads
+/storage
+
+# Fichiers de logs d'API REST
+/api_logs
+
+# Ignorer les fichiers de couverture de test
+/coverage
+
+# Fichiers générés par Node
+npm-debug.log*
+yarn-debug.log*
+.yarn-integrity
+
+# Fichiers liés à des tests
+/jest
+/junit.xml
+
+# Ignorer les fichiers éphémères de services
+*.pid
+*.seed
+*.pid.lock
+
+# Fichiers créés par ESLint et les linters
+.eslintcache
+
+# Requêtes HTTP pour tests avec des clients comme Insomnia ou Postman
+*.http
+*.har
+
+# Configurations à exclure
+/.env.test
+/.env.production.local
+
+# Dossiers liés à Docker, le cas échéant
+docker-compose.yml
+*.dockerignore
+
+# Clés et secrets
+*.pem
+*.key
+
+# .next folder for Next.js, au cas où vous utilisez ce framework
+.next/
+
+# Dossiers spécifiques aux modules de monitoring ou debug
+logs/
+graylog/
+shinken/
