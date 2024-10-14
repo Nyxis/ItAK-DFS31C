@@ -1,26 +1,25 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
-const apiKey = process.env.API_KEY;
 const secretKey = process.env.SECRET_KEY;
 
 module.exports = (req, res, next) => {
-    // Vérif clé API
-    const apiKeyHeader = req.headers['x-api-key'];
-    if (!apiKeyHeader || apiKeyHeader !== apiKey) {
-        return res.status(401).send('Clé API invalide ou manquante.');
+    const authHeader = req.headers['authorization'];
+
+    if (!authHeader) {
+        return res.status(401).send('Token d\'autorisation manquant.');
     }
 
-    // Vérif signature JWT
-    const signatureHeader = req.headers['x-signature'];
-    if (!signatureHeader) {
-        return res.status(401).send('Signature JWT manquante.');
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return res.status(401).send('Token d\'autorisation invalide.');
     }
 
     try {
-        jwt.verify(signatureHeader, secretKey + apiKey);
+        // Vérif token
+        jwt.verify(token, secretKey);
     } catch (error) {
-        return res.status(401).send('Signature invalide.');
+        return res.status(401).send('Token invalide.');
     }
     next();
 };

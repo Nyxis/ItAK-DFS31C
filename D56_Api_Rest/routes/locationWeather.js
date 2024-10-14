@@ -3,7 +3,6 @@ const jsonFormatter = require('../formatters/jsonFormatter');
 const xmlFormatter = require('../formatters/xmlFormatter');
 const csvFormatter = require('../formatters/csvFormatter');
 const LocationWeatherBuilder = require('../builders/locationWeatherBuilder');
-const authMiddleware = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
@@ -13,11 +12,11 @@ const router = express.Router();
  * @apiName GetLocationWeather
  * @apiGroup LocationWeather
  *
- * @apiParam {String} name Nom du lieu (ville, monument, etc.)
- * @apiParam {String="json","xml","csv"} [format] Format de réponse souhaité (en plus de l'en-tête `Accept`)
+ * @apiQuery {String} name Nom du lieu (ville, monument, etc.).
+ * @apiQuery {String="json","xml","csv"} [format] Format de réponse souhaité (en plus de l'en-tête `Accept`)
  * @apiHeader {String} [Accept] Format de réponse souhaité (application/json, application/xml, text/csv)
  * @apiHeader {String} x-api-key Clé API nécessaire pour l'authentification
- * @apiHeader {String} x-signature Signature JWT pour sécuriser la requête
+ * @apiHeader {String} Authorization Token JWT pour sécuriser la requête
  * 
  * @apiSuccess {String} name Nom du lieu.
  * @apiSuccess {String} city Ville du lieu.
@@ -26,36 +25,8 @@ const router = express.Router();
  * @apiSuccess {Number} temperature Température en °C.
  * @apiSuccess {Number} humidite Humidité en %.
  * @apiSuccess {Number} vitesseVent Vitesse du vent en m/s.
- *
- * @apiSuccessExample {json} Exemple de réponse Json:
- *     HTTP/1.1 200 OK
- *     {
- *       "name": "Lyon, France",
- *       "latitude": 45.764043,
- *       "longitude": 4.835659,
- *       "city": "Lyon",
- *       "temperature": 23,
- *       "humidite": 60,
- *       "vitesseVent": 5
- *     }
- * @apiSuccessExample {xml} Exemple de réponse xml:
- *     HTTP/1.1 200 OK
- *     <response>
- *       <name>Lyon, France</name>
- *       <latitude>45.764043</latitude>
- *       <longitude>4.835659</longitude>
- *       <city>Lyon</city>
- *       <temperature>23</temperature>
- *       <humidite>60</humidite>
- *       <vitesseVent>5</vitesseVent>
- *     </response>
- *
- * @apiSuccessExample {csv} Exemple de réponse csv:
- *     HTTP/1.1 200 OK
- *     name,latitude,longitude,city,temperature,humidite,vitesseVent
- *     Lyon, France,45.764043,4.835659,Lyon,23,60,5
  */
-router.get('/location-weather', authMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
     const locationName = req.query.name;
 
     if (!locationName) {
@@ -116,4 +87,5 @@ router.get('/location-weather', authMiddleware, async (req, res) => {
         res.status(500).send('Erreur lors de la récupération des données.');
     }
 });
+
 module.exports = router;
