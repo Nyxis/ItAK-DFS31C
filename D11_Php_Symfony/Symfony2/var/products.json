@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "designation": "Test Product",
+        "univers": "Test",
+        "price": 1000
+    },
+    {
+        "id": 0,
+        "designation": "test",
+        "univers": "7",
+        "price": 1999
+    },
+    {
+        "id": 0,
+        "designation": "TEST",
+        "univers": "TEST",
+        "price": 1000
+    },
+    {
+        "id": 0,
+        "designation": "test",
+        "univers": "tttt",
+        "price": 2200
+    },
+    {
+        "id": 0,
+        "designation": "PC Fixe",
+        "univers": "Univers 7",
+        "price": 1599
+    },
+    {
+        "id": 0,
+        "designation": "PC FIXE",
+        "univers": "Univers 7",
+        "price": 1599
+    }
+]

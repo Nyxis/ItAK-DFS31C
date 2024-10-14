@@ -1,48 +1,9 @@
-# Compiled source #
-###################
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.so
-build/*
 
-# Packages #
-############
-# it's better to unpack these files and commit the raw source
-# git has its own built in compression methods
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-*.zip
-
-# Logs #
-######################
+# Ignorer les fichiers de logs
 *.log
-logs/*
-
-# Caches #
-######################
-.cache
-cache/*
-
-# OS generated files #
-######################
+# Ignorer les fichiers de cache 
+*.cache
+# Ignorer les fichiers temporaires 
+*.tmp
+# Ignorer les fichiers DS Store
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-### Custom files metadata
-###################
-.php_cs.cache
-.vscode
-.idea

@@ -1,0 +1,15 @@
+0dab47,127.0.0.1,GET,http://127.0.0.1:8000/product,1721376412,,200,request
+1e4beb,127.0.0.1,GET,http://127.0.0.1:8000/product,1721376521,,200,request
+380376,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376641,,200,request
+638007,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376651,,200,request
+c42854,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376675,,200,request
+2ce172,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376676,,200,request
+a0977e,127.0.0.1,GET,http://127.0.0.1:8000/product,1721376755,,200,request
+2e845a,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376765,,302,request
+f69ae6,127.0.0.1,GET,http://127.0.0.1:8000/product,1721376766,,200,request
+482c39,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376797,,302,request
+330613,127.0.0.1,GET,http://127.0.0.1:8000/product,1721376798,,200,request
+142c97,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376817,,200,request
+a215b6,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376827,,200,request
+6befac,127.0.0.1,POST,http://127.0.0.1:8000/product,1721376830,,302,request
+ed4159,127.0.0.1,GET,http://127.0.0.1:8000/product,1721376830,,200,request
