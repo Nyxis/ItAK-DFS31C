@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Exercise</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Welcome to the API Exercise!</h1>
+
+    <!-- API Token Section -->
+    <section>
+        <h2>Step 1: Get your API Token</h2>
+        <button id="generateTokenBtn">Generate API Token</button>
+        <p><strong>Generated Token:</strong> <span id="tokenDisplay"></span></p>
+    </section>
+
+    <!-- Weather Data Query Section -->
+    <section>
+        <h2>Step 2: Weather Data Query</h2>
+        <p>You can search for weather and location data using either city name or GPS coordinates.</p>
+
+        <!-- Query by City Name -->
+        <h3>Search by City</h3>
+        <label for="city">City Name:</label>
+        <input type="text" id="city" placeholder="Enter city name">
+        <button onclick="getWeatherByCity()">Get Weather by City</button>
+
+        <!-- Query by GPS Coordinates -->
+        <h3>Search by GPS Coordinates</h3>
+        <label for="lat">Latitude:</label>
+        <input type="text" id="lat" placeholder="Enter latitude">
+        <label for="lon">Longitude:</label>
+        <input type="text" id="lon" placeholder="Enter longitude">
+        <button onclick="getWeatherByCoordinates()">Get Weather by GPS</button>
+    </section>
+
+    <!-- Results Section -->
+    <section>
+        <h2>Results</h2>
+        <pre id="result"></pre>
+    </section>
+
+    <footer>
+        <p><a href="/documentation">API Documentation (JSON/XML/CSV)</a></p>
+    </footer>
+
+    <!-- Link to external script -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+# This workflow will install node dependencies, cache them, and run tests across different versions of Node.js
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "API" ]
+  pull_request:
+    branches: [ "API" ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+        # These are the Node.js versions we will test
+
+    steps:
+      # Checkout the code from the repository
+      - uses: actions/checkout@v4
+
+      # Set up Node.js environment
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'  # Enable caching for npm dependencies
+
+      # Install dependencies
+      - run: npm ci
+
+      # Run the tests
+      - name: Run tests
+        run: npm test
+
+      # Optional: Upload test results to display in GitHub actions UI
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: ./test-results/
