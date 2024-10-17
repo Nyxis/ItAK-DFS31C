@@ -20,3 +20,4 @@ Pour déposer vos développements et livrables en général, vous devez suivre l
 
   - [Les bonnes pratiques de Git](docs/git.md)
   - [Livrer son travail](docs/workflow.md)
+![Funny Git GIF](https://media1.tenor.com/m/dl0pqo_s7UMAAAAC/ray-ray-charles.gif)
